@@ -1,20 +1,13 @@
-package com.example.security_demo.Config;
+package com.example.security_demo.config;
 
-import com.example.security_demo.Entity.Users;
+import com.example.security_demo.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 
@@ -22,7 +15,7 @@ import java.util.function.Function;
 public class JwtTokenUtils {
 //    @Value("${jwt.secret}")
     private final String secretKey = "yPTyD4NJtTyXxf9v+Y9bPerZs6XtiCyD+fNdlB/lRmdq4UrpOK6brnicDMZXbgiq";
-    public String generateToken( Users user){
+    public String generateToken( User user){
         long currentTimeMillis = System.currentTimeMillis();
         Date expirationDate = new Date(currentTimeMillis + 86400000);
         Map<String, Object> claims = new HashMap<>();

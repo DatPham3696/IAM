@@ -1,4 +1,4 @@
-package com.example.security_demo.Exception;
+package com.example.security_demo.exception;
 
 
 public class UserExistedException extends Exception{

@@ -1,4 +1,4 @@
-package com.example.security_demo.Exception;
+package com.example.security_demo.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

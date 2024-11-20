@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: security-demo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/UserTest
+    username: postgres
+    password: postdb
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+      generate-ddl: true
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      format-sql: true
+      show-sql: true
+  security:
+    user:
+      name: admin
+      password: password
+    jwt:
+      secret: yPTyD4NJtTyXxf9v+Y9bPerZs6XtiCyD+fNdlB/lRmdq4UrpOK6brnicDMZXbgiq
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23liSMUAYlfBae7nWd
+            client-secret: 4027d992c26ec04f7beb46c932c085d845bfb60e
+
+

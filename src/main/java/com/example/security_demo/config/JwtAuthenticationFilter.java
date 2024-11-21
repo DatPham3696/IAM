@@ -1,6 +1,7 @@
 package com.example.security_demo.config;
 
 //import com.example.security_demo.service.UserInforDetailService;
+import com.example.security_demo.service.UserInforDetailService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,17 +20,15 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenUtils jwtTokenUtils;
-//    private final UserInforDetailService userDetailsService;
+    private final UserInforDetailService userDetailsService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = getJwtFromRequest(request);
         if(token != null && !jwtTokenUtils.isTokenExpired(token)){
             String userName = jwtTokenUtils.getUserNameFromToken(token);
-//            UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
-//            Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            //lấy ra thông tin người dùng hiện tại trong ứng dụng:
-            //Authentication authentication = SecurityContextHolder.getContext.getAuthentication()
-//            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+            Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request,response);
     }

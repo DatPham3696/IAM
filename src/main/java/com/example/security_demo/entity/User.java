@@ -1,11 +1,14 @@
 package com.example.security_demo.entity;
 
+import com.example.security_demo.repository.IRoleRepository;
+import com.example.security_demo.repository.IUserRepository;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -22,14 +25,14 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @Table(name = "users")
-public class User implements UserDetails {
+public class User implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+    @Column(name = "id")
     private Long id;
-    @Column(name = "user_name")
+    @Column(name = "username")
     private String userName;
-    @Column(name = "pass_word")
+    @Column(name = "password")
     private String passWord;
     @Column(name = "email")
     private String email;
@@ -39,13 +42,8 @@ public class User implements UserDetails {
     private String address;
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
-//    @ManyToMany
-//    @JoinTable(name = "user_roles",
-//            joinColumns = @JoinColumn(name = "user_id"),
-//            inverseJoinColumns = @JoinColumn(name = "role_id")
-//    )
-//    @JsonManagedReference
-    private Set<Role> roles;
+    @Column(name = "role_id")
+    private Long roleId;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -64,12 +62,12 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return true;
     }
 
     @Override

@@ -20,7 +20,7 @@ public class RoleResponseDTO {
     public static RoleResponseDTO fromRole(Role role){
         return RoleResponseDTO.builder()
                 .roleName(role.getRoleName())
-                .permission(role.getPermissions().stream().map(PermissionResponseDTO::fromPermission).collect(Collectors.toSet()))
+//                .permission(role.getPermissions().stream().map(PermissionResponseDTO::fromPermission).collect(Collectors.toSet()))
                 .build();
     }
 }

@@ -22,17 +22,10 @@ import java.util.Set;
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "role_id")
+    @Column(name = "id")
     private Long id;
     @Column(name = "role_name")
     private String roleName;
-    @ManyToMany(mappedBy = "roles")
-    @JsonBackReference
-    private Set<User> users;
-//    @ManyToMany
-//    @JoinTable(name = "role_permission",
-//            joinColumns = {@JoinColumn(name = "role_id")},
-//            inverseJoinColumns = {@JoinColumn(name = "permission_id")})
-//    @JsonManagedReference
-    private Set<Permission> permissions;
+    @Column(name = "user_id")
+    private String userId;
 }

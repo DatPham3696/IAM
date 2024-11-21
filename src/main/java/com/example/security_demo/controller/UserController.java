@@ -6,6 +6,8 @@ import com.example.security_demo.entity.User;
 import com.example.security_demo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,12 +24,17 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-//    @PostMapping("/login")
-//    public String login(@RequestBody LoginRequestDTO userDTO) throws Exception {
-//        try{
-//            return userService.login(userDTO);
-//        }catch (Exception e){
-//            throw new Exception(e.getMessage());
-//        }
-//    }
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequestDTO userDTO) throws Exception {
+        try{
+            return userService.login(userDTO);
+        }catch (Exception e){
+            throw new Exception(e.getMessage());
+        }
+    }
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public String admin(){
+        return "admin";
+    }
 }

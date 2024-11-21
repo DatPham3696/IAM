@@ -1,30 +1,25 @@
 package com.example.security_demo.dtos.userDtos;
 
-import com.example.security_demo.dtos.roleDtos.RoleResponseDTO;
+import com.example.security_demo.entity.Permission;
+import com.example.security_demo.entity.Role;
 import com.example.security_demo.entity.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.example.security_demo.repository.IRoleRepository;
+import lombok.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Slf4j
+@Component
 public class UserResponseDTO {
     private String userName;
     private String email;
     private String address;
-    private Set<RoleResponseDTO> roles;
-    public static UserResponseDTO fromUser(User user){
-        return UserResponseDTO.builder()
-                .userName(user.getUsername())
-                .email(user.getEmail())
-                .address(user.getAddress())
-                .roles(user.getRoles().stream().map(RoleResponseDTO::fromRole).collect(Collectors.toSet()))
-                .build();
-    }
+    private String roleName;
+    private List<String> perDescription;
 }

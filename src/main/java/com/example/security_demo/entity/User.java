@@ -44,7 +44,11 @@ public class User implements UserDetails{
     private LocalDate dateOfBirth;
     @Column(name = "role_id")
     private Long roleId;
-
+    @Column(name = "enable")
+    private boolean enable = false;
+    private String verificationCode;
+    @Column(name = "profile_picture")
+    private String profilePicture;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

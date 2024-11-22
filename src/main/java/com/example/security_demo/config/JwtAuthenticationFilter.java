@@ -24,6 +24,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = getJwtFromRequest(request);
+        if (isPublicEndpoint(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        if(jwtTokenUtils.isTokenValid(token)){
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token in valid");
+            return;
+        }
         if(token != null && !jwtTokenUtils.isTokenExpired(token)){
             String email = jwtTokenUtils.getSubFromToken(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -38,5 +46,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
            return token.substring(7);
         }
         return null;
+    }
+    private boolean isPublicEndpoint(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.contains("/login") ||
+                uri.contains("/register") ||
+//                uri.contains("/logoutAccount")  ||
+                uri.contains("/confirmRegisterEmail") ||
+                uri.contains("/confirmLoginEmail") ||
+                uri.contains("/uploads");
     }
 }

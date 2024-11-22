@@ -24,21 +24,25 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests((request) -> request
-                .requestMatchers("/login/**").permitAll()
-                .requestMatchers("/register/**").permitAll()
-                .anyRequest().authenticated());
+                        .requestMatchers("/login/**", "/register/**", "/resetPasswordToken/**",
+//                                "/logoutAccount/**",
+                                "/confirmRegisterEmail/**", "confirmLoginEmail", "/uploads/**")
+                        .permitAll()
+                        .anyRequest().authenticated());
         httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         httpSecurity.httpBasic(withDefaults());
         httpSecurity.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());
         return httpSecurity.build();
     }
+
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 //    @Bean

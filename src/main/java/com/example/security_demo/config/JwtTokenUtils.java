@@ -4,6 +4,7 @@ import com.example.security_demo.entity.Permission;
 import com.example.security_demo.entity.Role;
 import com.example.security_demo.entity.RolePermission;
 import com.example.security_demo.entity.User;
+import com.example.security_demo.repository.IInvalidTokenRepository;
 import com.example.security_demo.repository.IPermissionRepository;
 import com.example.security_demo.repository.IRolePermissionRepository;
 import com.example.security_demo.repository.IRoleRepository;
@@ -26,13 +27,15 @@ public class JwtTokenUtils {
     private final IRoleRepository roleRepository;
     private final IPermissionRepository permissionRepository;
     private final IRolePermissionRepository rolePermissionRepository;
+    private final IInvalidTokenRepository invalidTokenRepository;
     @Autowired
     private TokenProvider tokenProvider;
 
-    public JwtTokenUtils(IRoleRepository roleRepository, IPermissionRepository permissionRepository, IRolePermissionRepository rolePermissionRepository) {
+    public JwtTokenUtils(IRoleRepository roleRepository, IPermissionRepository permissionRepository, IRolePermissionRepository rolePermissionRepository, IInvalidTokenRepository invalidTokenRepository) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.rolePermissionRepository = rolePermissionRepository;
+        this.invalidTokenRepository = invalidTokenRepository;
     }
 
     //    public String generateToken(User user){
@@ -66,6 +69,7 @@ public class JwtTokenUtils {
         claims.put("sub", user.getEmail());
         claims.put("exp", expirationDate);
         claims.put("scope", scope);
+        claims.put("jti", UUID.randomUUID().toString());
         String JWT = Jwts.builder().claims(claims)
                 .signWith(tokenProvider.getKeyPair().getPrivate(), Jwts.SIG.RS256)
                 .compact();
@@ -101,9 +105,15 @@ public class JwtTokenUtils {
     public Date getExpirationTimeFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
-
+    public String getJtiFromToken(String token){
+        return getClaimFromToken(token,Claims::getId);
+    }
     public boolean isTokenExpired(String token) {
         Date expirationDate = getExpirationTimeFromToken(token);
         return expirationDate.before(new Date());
+    }
+    public boolean isTokenValid(String token){
+        String jti = getJtiFromToken(token);
+        return invalidTokenRepository.existsById(jti);
     }
 }

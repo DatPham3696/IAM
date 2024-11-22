@@ -11,9 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterDTO {
-    @Email(message = "Invalid email format")
-    private String email;
+public class UpdateInforRequestDTO {
     @NotBlank(message = "Username is required")
     private String userName;
     @Size(min = 8, message = "Password must be at least 6 characters")

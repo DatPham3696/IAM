@@ -85,16 +85,16 @@ public class JwtTokenUtils {
                 .getPayload();
     }
 
-    public String exTractUserName(String token) {
-        return getAllClaimFromToken(token).getSubject();
-    }
+//    public String exTractUserName(String token) {
+//        return getAllClaimFromToken(token).getSubject();
+//    }
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         Claims claims = getAllClaimFromToken(token);
         return claimsResolver.apply(claims);
     }
 
-    public String getUserNameFromToken(String token) {
+    public String getSubFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
 

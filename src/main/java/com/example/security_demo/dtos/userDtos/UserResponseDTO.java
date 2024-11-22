@@ -8,7 +8,9 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 @Data
 @Builder
@@ -21,5 +23,6 @@ public class UserResponseDTO {
     private String email;
     private String address;
     private String roleName;
+    private LocalDate dateOfBirth;
     private List<String> perDescription;
 }

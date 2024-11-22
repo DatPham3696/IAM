@@ -93,7 +93,7 @@ public class UserController {
         }
     }
     @GetMapping("/confirmLoginEmail")
-    public String confirmCode(@RequestParam String email, @RequestBody String code){
+    public String confirmLoginEmail(@RequestParam String email, @RequestBody String code){
         return userService.verifyLoginGenerateToken(email, code);
     }
 //    @PostMapping(value = "uploads/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

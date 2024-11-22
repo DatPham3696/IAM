@@ -111,6 +111,7 @@ public class UserService {
             Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
             SecurityContext securityContextHolder = SecurityContextHolder.getContext();
             securityContextHolder.setAuthentication(authentication);
+
             logService.saveLog(UserActivityLog.builder()
                             .action("LOGIN")
                             .browserId(request.getRemoteAddr())

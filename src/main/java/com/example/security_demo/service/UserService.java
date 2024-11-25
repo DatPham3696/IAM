@@ -143,7 +143,8 @@ public class UserService {
     }
 
     @PostAuthorize("returnObject.email == authentication.name")
-    public UserResponseDTO updateUserInfo(Long userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException, UserExistedException {
+    public UserResponseDTO updateUserInfo(Long userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException,
+            UserExistedException {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         existingUser.setUserName(updateInforRequestDTO.getUserName());

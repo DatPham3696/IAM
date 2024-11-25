@@ -1,6 +1,6 @@
 package com.example.security_demo.dtos.roleDtos;
 
-import com.example.security_demo.dtos.PermissionDtos.PermissionResponseDTO;
+import com.example.security_demo.dtos.permissionDtos.PermissionResponseDTO;
 import com.example.security_demo.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor

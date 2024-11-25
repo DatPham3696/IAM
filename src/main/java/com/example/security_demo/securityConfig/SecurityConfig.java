@@ -30,9 +30,9 @@ public class SecurityConfig {
         httpSecurity
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests((request) -> request
-                        .requestMatchers("/login/**", "/register/**", "/resetPasswordToken/**",
+                        .requestMatchers("api/login/**", "api/register/**", "api/resetPasswordToken/**",
 //                                "/logoutAccount/**",
-                                "/confirmRegisterEmail/**", "confirmLoginEmail", "/uploads/**")
+                                "api/confirmRegisterEmail/**", "api/confirmLoginEmail", "api/uploads/**")
                         .permitAll()
                         .anyRequest().authenticated());
         httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

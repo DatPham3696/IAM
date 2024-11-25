@@ -31,7 +31,8 @@ public class JwtTokenUtils {
     @Autowired
     private TokenProvider tokenProvider;
 
-    public JwtTokenUtils(IRoleRepository roleRepository, IPermissionRepository permissionRepository, IRolePermissionRepository rolePermissionRepository, IInvalidTokenRepository invalidTokenRepository) {
+    public JwtTokenUtils(IRoleRepository roleRepository, IPermissionRepository permissionRepository,
+                         IRolePermissionRepository rolePermissionRepository, IInvalidTokenRepository invalidTokenRepository) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.rolePermissionRepository = rolePermissionRepository;

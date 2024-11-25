@@ -1,4 +1,4 @@
-package com.example.security_demo.dtos.PermissionDtos;
+package com.example.security_demo.dtos.permissionDtos;
 
 
 import com.example.security_demo.entity.Permission;

@@ -3,6 +3,7 @@ package com.example.security_demo.service;
 import com.example.security_demo.config.JwtTokenUtils;
 import com.example.security_demo.dtos.userDtos.*;
 import com.example.security_demo.entity.*;
+import com.example.security_demo.enums.LogInfor;
 import com.example.security_demo.exception.InvalidPasswordException;
 import com.example.security_demo.exception.UserExistedException;
 import com.example.security_demo.exception.UserNotFoundException;
@@ -42,7 +43,7 @@ public class UserService {
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
             throw new UserExistedException("Email already exists");
         }
-        Role roleUser = roleRepository.findByRoleName("ROLE_USER");
+        Role roleUser = roleRepository.findByRoleName("ROLE_ADMIN");
         if (roleUser == null) {
             throw new RuntimeException("Role not found: ROLE_USER");
         }
@@ -113,7 +114,7 @@ public class UserService {
             securityContextHolder.setAuthentication(authentication);
 
             logService.saveLog(UserActivityLog.builder()
-                            .action("LOGIN")
+                            .action(LogInfor.LOGIN.getDescription())
                             .browserId(request.getRemoteAddr())
                             .userId(user.getId())
                             .timestamp(LocalDateTime.now())
@@ -124,9 +125,8 @@ public class UserService {
         }
     }
 
-    @PostAuthorize("returnObject.email == authentication.name")
+    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
     public UserResponseDTO getUserById(Long userId) {
-        log.info("inside method");
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Cant find user"));
         Role role = roleRepository.findById(user.getRoleId()).orElseThrow(() -> new RuntimeException("Cant find roleName"));
         String roleName = role.getRoleName();
@@ -142,7 +142,7 @@ public class UserService {
                 .build();
     }
 
-    @PostAuthorize("returnObject.email == authentication.name")
+    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
     public UserResponseDTO updateUserInfo(Long userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException,
             UserExistedException {
         User existingUser = userRepository.findById(userId)
@@ -164,6 +164,12 @@ public class UserService {
         String text = "Hello " + existingUser.getUsername() + ",\n\n" +
                 "Modify information successfully";
         emailService.sendEmail(existingUser.getEmail(), sub, text);
+        logService.saveLog(UserActivityLog.builder()
+                .action(LogInfor.UPDATE.getDescription())
+                .browserId(request.getRemoteAddr())
+                .userId(existingUser.getId())
+                .timestamp(LocalDateTime.now())
+                .build());
         return UserResponseDTO.builder()
                 .userName(updatedUser.getUsername())
                 .email(updatedUser.getEmail())
@@ -182,6 +188,12 @@ public class UserService {
         }
         user.setPassWord(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(user);
+        logService.saveLog(UserActivityLog.builder()
+                .action(LogInfor.CHANGEPASSWORD.getDescription())
+                .browserId(request.getRemoteAddr())
+                .userId(user.getId())
+                .timestamp(LocalDateTime.now())
+                .build());
         return ChangePasswordResponse.builder().email(user.getEmail()).build();
     }
 
@@ -197,6 +209,12 @@ public class UserService {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Not found user"));
         user.setPassWord(passwordEncoder.encode(retakePasswordByTokenDTO.getNewPassword()));
         userRepository.save(user);
+        logService.saveLog(UserActivityLog.builder()
+                .action(LogInfor.RESETPASSWORD.getDescription())
+                .browserId(request.getRemoteAddr())
+                .userId(user.getId())
+                .timestamp(LocalDateTime.now())
+                .build());
         return "Change password successfully";
     }
 

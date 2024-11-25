@@ -22,7 +22,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenUtils jwtTokenUtils;
     private final UserInforDetailService userDetailsService;
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String token = getJwtFromRequest(request);
         if (isPublicEndpoint(request)) {
             filterChain.doFilter(request, response);
@@ -49,11 +50,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.contains("/login") ||
-                uri.contains("/register") ||
+        return uri.contains("api/login") ||
+                uri.contains("api/register") ||
 //                uri.contains("/logoutAccount")  ||
-                uri.contains("/confirmRegisterEmail") ||
-                uri.contains("/confirmLoginEmail") ||
-                uri.contains("/uploads");
+                uri.contains("api/confirmRegisterEmail") ||
+                uri.contains("api/confirmLoginEmail") ||
+                uri.contains("api/uploads");
     }
 }

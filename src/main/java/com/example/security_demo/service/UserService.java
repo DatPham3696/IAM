@@ -38,16 +38,20 @@ public class UserService {
     private final IInvalidTokenRepository invalidTokenRepository;
     private final RedisService redisService;
     private final LogService logService;
+    private final IRoleUserRepository roleUserRepository;
     private final HttpServletRequest request;
+    private final RefreshTokenService refreshTokenService;
+
     public UserResponseDTO signUp(RegisterDTO registerDTO) throws UserExistedException {
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
             throw new UserExistedException("Email already exists");
         }
-        Role roleUser = roleRepository.findByRoleName("ROLE_ADMIN");
-        if (roleUser == null) {
+        Role role = roleRepository.findByRoleName("ROLE_ADMIN");
+        if (role == null) {
             throw new RuntimeException("Role not found: ROLE_USER");
         }
-        String verificationCode = UUID.randomUUID().toString();
+
+        String verificationCode = UUID.randomUUID().toString().substring(0, 6);
         User user = userRepository.save(User.builder()
                 .userName(registerDTO.getUserName())
                 .address(registerDTO.getAddress())
@@ -55,15 +59,22 @@ public class UserService {
                 .email(registerDTO.getEmail())
                 .dateOfBirth(registerDTO.getDateOfBirth())
                 .verificationCode(verificationCode)
-                .roleId(roleUser.getId())
+//                .roleId(roleUser.getId())
                 .phoneNumber(registerDTO.getPhoneNumber())
                 .build());
-        List<String> descriptions = rolePermissionRepository.findAllByRoleId(roleUser.getId()).stream()
+
+        RoleUser roleUser = roleUserRepository.save(RoleUser.builder()
+                .roleId(role.getId())
+                .userId(user.getId())
+                .build());
+
+        List<String> descriptions = rolePermissionRepository.findAllByRoleId(role.getId()).stream()
                 .map(RolePermission::getPermissionId)
                 .map(permissionId -> permissionRepository.findById(permissionId)
                         .map(Permission::getDescription)
                         .orElse("Unknown Permission"))
                 .toList();
+
         String sub = "Confirm register account";
         String text = "Hello " + user.getUsername() + ",\n\n" +
                 "Thank you for registering an account. Please click the link below to confirm your account:\n" +
@@ -74,7 +85,7 @@ public class UserService {
                 .email(user.getEmail())
                 .address(user.getAddress())
                 .dateOfBirth(user.getDateOfBirth())
-                .roleName(roleUser.getRoleName())
+                .roleName(role.getRoleName())
                 .perDescription(descriptions)
                 .build();
     }
@@ -94,17 +105,14 @@ public class UserService {
         if (!passwordEncoder.matches(userDTO.getPassWord(), user.getPassword())) {
             throw new RuntimeException("invalid infor");
         }
-//        Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-//        SecurityContext securityContextHolder = SecurityContextHolder.getContext();
-//        securityContextHolder.setAuthentication(authentication);
         String verificationCode = UUID.randomUUID().toString().substring(0, 6);
-        emailService.sendEmail(user.getEmail(), "Verify login code", "Please using this code to complete your login:\n "+
+        emailService.sendEmail(user.getEmail(), "Verify login code", "Please using this code to complete your login:\n " +
                 "http://localhost:8080/confirmemail?code=" + verificationCode);
         redisService.saveStringToRedis(user.getEmail(), verificationCode, 5, TimeUnit.MINUTES);
         return "Please check your verify code in your email ";
     }
 
-    public String verifyLoginGenerateToken(String email, String code) {
+    public JwtResponse verifyLoginGenerateToken(String email, String code) {
         String storeCode = redisService.getStringFromRedis(email);
         if (storeCode != null && storeCode.equals(code)) {
             redisService.deleteFromRedis(email);
@@ -114,21 +122,61 @@ public class UserService {
             securityContextHolder.setAuthentication(authentication);
 
             logService.saveLog(UserActivityLog.builder()
-                            .action(LogInfor.LOGIN.getDescription())
-                            .browserId(request.getRemoteAddr())
-                            .userId(user.getId())
-                            .timestamp(LocalDateTime.now())
+                    .action(LogInfor.LOGIN.getDescription())
+                    .browserId(request.getRemoteAddr())
+                    .userId(user.getId())
+                    .timestamp(LocalDateTime.now())
                     .build());
-            return jwtTokenUtils.generateToken(user);
+            refreshTokenService.deleteByUserId(user.getId());
+            String token = jwtTokenUtils.generateToken(user);
+            return JwtResponse.builder()
+                    .accessToken(token)
+                    .refreshToken(refreshTokenService.createRefreshToken(user.getId(), jwtTokenUtils.getJtiFromToken(token)).getToken())
+                    .build();
         } else {
             throw new RuntimeException("Invalid code");
         }
+    }
+// load token mới mỗi lần refresh
+    //    public JwtResponse refreshToken(RefreshTokenRequest request) {
+//        Optional<RefreshToken> refreshToken = refreshTokenService.findByToken(request.getRefreshToken());
+//        if (refreshToken.isPresent()) {
+//            invalidTokenRepository.save(
+//                    InvalidToken.builder()
+//                            .id(refreshToken.get().getAccessTokenId())
+//                            .build());
+//            RefreshToken validRefreshToken = refreshTokenService.verifyRefreshToken(refreshToken.get());
+//            User user = userRepository.findById(validRefreshToken.getUserId()).orElseThrow(() -> new RuntimeException("Not find user"));
+//            refreshTokenService.deleteByUserId(user.getId());
+//            String accessToken = jwtTokenUtils.generateToken(user);
+//            return JwtResponse.builder()
+//                    .accessToken(accessToken)
+//                    .refreshToken(refreshTokenService.createRefreshToken(user.getId(),jwtTokenUtils.getJtiFromToken(accessToken)).getToken())
+//                    .build();
+//        }
+//        throw new RuntimeException("Error");
+//    }
+    // dùng refresh đến khi hết hạn
+    public String refreshToken(RefreshTokenRequest request) {
+        Optional<RefreshToken> refreshToken = refreshTokenService.findByToken(request.getRefreshToken());
+        if (refreshToken.isPresent()) {
+            invalidTokenRepository.save(
+                    InvalidToken.builder()
+                            .id(refreshToken.get().getAccessTokenId())
+                            .build());
+            RefreshToken validRefreshToken = refreshTokenService.verifyRefreshToken(refreshToken.get());
+            User user = userRepository.findById(validRefreshToken.getUserId()).orElseThrow(() -> new RuntimeException("Not find user"));
+            String accessToken = jwtTokenUtils.generateToken(user);
+            return accessToken;
+        }
+        throw new RuntimeException("Error");
     }
 
     @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
     public UserResponseDTO getUserById(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Cant find user"));
-        Role role = roleRepository.findById(user.getRoleId()).orElseThrow(() -> new RuntimeException("Cant find roleName"));
+        RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
+        Role role = roleRepository.findById(roleUser.getRoleId()).orElseThrow(() -> new RuntimeException("Cant find roleName"));
         String roleName = role.getRoleName();
         List<Long> permissionId = rolePermissionRepository.findAllByRoleId(role.getId()).stream().map(RolePermission::getPermissionId).toList();
         List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getDescription).toList();
@@ -152,30 +200,36 @@ public class UserService {
         existingUser.setPhoneNumber(updateInforRequestDTO.getPhoneNumber());
         existingUser.setDateOfBirth(updateInforRequestDTO.getDateOfBirth());
         User updatedUser = userRepository.save(existingUser);
-        Role roleUser = roleRepository.findById(updatedUser.getRoleId())
+
+        RoleUser roleUser = roleUserRepository.findByUserId(updatedUser.getId());
+        Role role = roleRepository.findById(roleUser.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
+
         List<String> descriptions = rolePermissionRepository.findAllByRoleId(roleUser.getId()).stream()
                 .map(RolePermission::getPermissionId)
                 .map(permissionId -> permissionRepository.findById(permissionId)
                         .map(Permission::getDescription)
                         .orElse("Unknown Permission"))
                 .toList();
+
         String sub = "Modify infor";
         String text = "Hello " + existingUser.getUsername() + ",\n\n" +
                 "Modify information successfully";
         emailService.sendEmail(existingUser.getEmail(), sub, text);
+
         logService.saveLog(UserActivityLog.builder()
                 .action(LogInfor.UPDATE.getDescription())
                 .browserId(request.getRemoteAddr())
                 .userId(existingUser.getId())
                 .timestamp(LocalDateTime.now())
                 .build());
+
         return UserResponseDTO.builder()
                 .userName(updatedUser.getUsername())
                 .email(updatedUser.getEmail())
                 .address(updatedUser.getAddress())
                 .dateOfBirth(updatedUser.getDateOfBirth())
-                .roleName(roleUser.getRoleName())
+                .roleName(role.getRoleName())
                 .perDescription(descriptions)
                 .build();
     }
@@ -226,6 +280,7 @@ public class UserService {
         invalidTokenRepository.save(invalidToken);
         return "logout success";
     }
+
     public User getUById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

@@ -42,8 +42,6 @@ public class User implements UserDetails{
     private String address;
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
-    @Column(name = "role_id")
-    private Long roleId;
     @Column(name = "enable")
     private boolean enable = false;
     private String verificationCode;

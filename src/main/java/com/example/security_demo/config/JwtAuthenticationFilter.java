@@ -30,7 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         if(jwtTokenUtils.isTokenValid(token)){
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token in valid");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalid");
             return;
         }
         if(token != null && !jwtTokenUtils.isTokenExpired(token)){
@@ -55,6 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //                uri.contains("/logoutAccount")  ||
                 uri.contains("api/confirmRegisterEmail") ||
                 uri.contains("api/confirmLoginEmail") ||
-                uri.contains("api/uploads");
+                uri.contains("api/uploads") ||
+                uri.contains("api/refreshToken");
     }
 }

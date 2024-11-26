@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((request) -> request
                         .requestMatchers("api/login/**", "api/register/**", "api/resetPasswordToken/**",
 //                                "/logoutAccount/**",
-                                "api/confirmRegisterEmail/**", "api/confirmLoginEmail", "api/uploads/**")
+                                "api/confirmRegisterEmail/**", "api/confirmLoginEmail", "api/uploads/**", "api/refreshToken/**")
                         .permitAll()
                         .anyRequest().authenticated());
         httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

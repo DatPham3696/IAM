@@ -1,13 +1,7 @@
 package com.example.security_demo.config;
 
-import com.example.security_demo.entity.Permission;
-import com.example.security_demo.entity.Role;
-import com.example.security_demo.entity.RolePermission;
-import com.example.security_demo.entity.User;
-import com.example.security_demo.repository.IInvalidTokenRepository;
-import com.example.security_demo.repository.IPermissionRepository;
-import com.example.security_demo.repository.IRolePermissionRepository;
-import com.example.security_demo.repository.IRoleRepository;
+import com.example.security_demo.entity.*;
+import com.example.security_demo.repository.*;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -28,15 +22,18 @@ public class JwtTokenUtils {
     private final IPermissionRepository permissionRepository;
     private final IRolePermissionRepository rolePermissionRepository;
     private final IInvalidTokenRepository invalidTokenRepository;
+    private final IRoleUserRepository roleUserRepository;
     @Autowired
     private TokenProvider tokenProvider;
 
     public JwtTokenUtils(IRoleRepository roleRepository, IPermissionRepository permissionRepository,
-                         IRolePermissionRepository rolePermissionRepository, IInvalidTokenRepository invalidTokenRepository) {
+                         IRolePermissionRepository rolePermissionRepository, IInvalidTokenRepository invalidTokenRepository,
+                         IRoleUserRepository roleUserRepository) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.rolePermissionRepository = rolePermissionRepository;
         this.invalidTokenRepository = invalidTokenRepository;
+        this.roleUserRepository = roleUserRepository;
     }
 
     //    public String generateToken(User user){
@@ -58,13 +55,14 @@ public class JwtTokenUtils {
 //        return JWT;
 //    }
     public String generateToken(User user) {
-        String role = roleRepository.findById(user.getRoleId()).get().getRoleName();
-        List<Long> permissionId = rolePermissionRepository.findAllByRoleId(user.getRoleId()).stream()
+        RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
+        String roleName = roleRepository.findById(roleUser.getRoleId()).get().getRoleName();
+        List<Long> permissionId = rolePermissionRepository.findAllByRoleId(roleUser.getRoleId()).stream()
                 .map(RolePermission::getPermissionId).collect(Collectors.toList());
         List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getDescription).toList();
-        String scope = role + " " + String.join(" ", description);
+        String scope = roleName + " " + String.join(" ", description);
         long currentTimeMillis = System.currentTimeMillis();
-        Date expirationDate = new Date(currentTimeMillis + 86400000);
+        Date expirationDate = new Date(currentTimeMillis + 300000);
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", user.getUsername());
         claims.put("sub", user.getEmail());
@@ -106,14 +104,17 @@ public class JwtTokenUtils {
     public Date getExpirationTimeFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
-    public String getJtiFromToken(String token){
-        return getClaimFromToken(token,Claims::getId);
+
+    public String getJtiFromToken(String token) {
+        return getClaimFromToken(token, Claims::getId);
     }
+
     public boolean isTokenExpired(String token) {
         Date expirationDate = getExpirationTimeFromToken(token);
         return expirationDate.before(new Date());
     }
-    public boolean isTokenValid(String token){
+
+    public boolean isTokenValid(String token) {
         String jti = getJtiFromToken(token);
         return invalidTokenRepository.existsById(jti);
     }

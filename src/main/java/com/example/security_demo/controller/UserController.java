@@ -94,8 +94,12 @@ public class UserController {
         }
     }
     @GetMapping("/confirmLoginEmail")
-    public String confirmLoginEmail(@RequestParam String email, @RequestBody String code){
-        return userService.verifyLoginGenerateToken(email, code);
+    public ResponseEntity<?> confirmLoginEmail(@RequestParam String email, @RequestBody String code){
+        return ResponseEntity.ok(userService.verifyLoginGenerateToken(email, code));
+    }
+    @PostMapping("/refreshToken")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request){
+        return ResponseEntity.ok(userService.refreshToken(request));
     }
 //    @PostMapping(value = "uploads/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 //    public ResponseEntity<?> uploadImage(@PathVariable("userId") Long userId, @ModelAttribute("files") MultipartFile file) throws IOException {

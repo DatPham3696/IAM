@@ -30,6 +30,7 @@ spring:
   security:
     authentication:
       jwt:
+        jwt_refresh_expiration: 2592000000
         key_store: keystore.jks
         key_store_password: phamthanhdat
         key_alias: viz

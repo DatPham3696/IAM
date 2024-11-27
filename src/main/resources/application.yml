@@ -1,3 +1,5 @@
+server:
+  port: 8090
 spring:
   application:
     name: security-demo
@@ -43,5 +45,9 @@ spring:
           github:
             client-id: Ov23liSMUAYlfBae7nWd
             client-secret: 4027d992c26ec04f7beb46c932c085d845bfb60e
+idp:
+  url: http://localhost:8080
+  client-id: aim_app
+  client-secret: gCmqsGzo2kEwgUCJtPhYIlTNDX1KFau1
 
 

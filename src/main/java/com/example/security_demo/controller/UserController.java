@@ -6,6 +6,7 @@ import com.example.security_demo.exception.InvalidPasswordException;
 import com.example.security_demo.exception.UserExistedException;
 import com.example.security_demo.exception.UserNotFoundException;
 import com.example.security_demo.service.EmailService;
+import com.example.security_demo.service.UserKeycloakService;
 import com.example.security_demo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -33,6 +34,7 @@ import java.util.UUID;
 public class UserController {
     private final UserService userService;
     private final EmailService emailService;
+    private final UserKeycloakService userKeycloakService;
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterDTO user) {
         try{
@@ -100,6 +102,11 @@ public class UserController {
     @PostMapping("/refreshToken")
     public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request){
         return ResponseEntity.ok(userService.refreshToken(request));
+    }
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutKcl(@RequestHeader("authorization") String authorizationHeader,
+                                       @RequestParam("refresh_token") String refreshToken){
+            return ResponseEntity.ok().body(userKeycloakService.logout(authorizationHeader, refreshToken));
     }
 //    @PostMapping(value = "uploads/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 //    public ResponseEntity<?> uploadImage(@PathVariable("userId") Long userId, @ModelAttribute("files") MultipartFile file) throws IOException {

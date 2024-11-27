@@ -1,6 +1,7 @@
 package com.example.security_demo.service;
 
 import com.example.security_demo.config.JwtTokenUtils;
+import com.example.security_demo.dtos.identity.TokenExchangeParam;
 import com.example.security_demo.dtos.userDtos.*;
 import com.example.security_demo.entity.*;
 import com.example.security_demo.enums.LogInfor;
@@ -11,6 +12,7 @@ import com.example.security_demo.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,6 +43,7 @@ public class UserService {
     private final IRoleUserRepository roleUserRepository;
     private final HttpServletRequest request;
     private final RefreshTokenService refreshTokenService;
+    private final UserKeycloakService userKeycloakService;
 
     public UserResponseDTO signUp(RegisterDTO registerDTO) throws UserExistedException {
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
@@ -50,16 +53,15 @@ public class UserService {
         if (role == null) {
             throw new RuntimeException("Role not found: ROLE_USER");
         }
-
         String verificationCode = UUID.randomUUID().toString().substring(0, 6);
         User user = userRepository.save(User.builder()
                 .userName(registerDTO.getUserName())
+                .keyclUserId(userKeycloakService.createKeycloakUser(registerDTO))
                 .address(registerDTO.getAddress())
                 .passWord(passwordEncoder.encode(registerDTO.getPassWord()))
                 .email(registerDTO.getEmail())
                 .dateOfBirth(registerDTO.getDateOfBirth())
                 .verificationCode(verificationCode)
-//                .roleId(roleUser.getId())
                 .phoneNumber(registerDTO.getPhoneNumber())
                 .build());
 
@@ -137,7 +139,8 @@ public class UserService {
             throw new RuntimeException("Invalid code");
         }
     }
-// load token mới mỗi lần refresh
+
+    // load token mới mỗi lần refresh
     //    public JwtResponse refreshToken(RefreshTokenRequest request) {
 //        Optional<RefreshToken> refreshToken = refreshTokenService.findByToken(request.getRefreshToken());
 //        if (refreshToken.isPresent()) {

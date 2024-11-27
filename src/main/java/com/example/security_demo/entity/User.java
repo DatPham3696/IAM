@@ -47,6 +47,7 @@ public class User implements UserDetails{
     private String verificationCode;
     @Column(name = "profile_picture")
     private String profilePicture;
+    private String keyclUserId;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

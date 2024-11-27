@@ -25,6 +25,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+
+
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
@@ -32,7 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((request) -> request
                         .requestMatchers("api/login/**", "api/register/**", "api/resetPasswordToken/**",
 //                                "/logoutAccount/**",
-                                "api/confirmRegisterEmail/**", "api/confirmLoginEmail", "api/uploads/**", "api/refreshToken/**")
+                                "api/confirmRegisterEmail/**", "api/confirmLoginEmail", "api/uploads/**", "api/refreshToken/**", "api/logout/**")
                         .permitAll()
                         .anyRequest().authenticated());
         httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

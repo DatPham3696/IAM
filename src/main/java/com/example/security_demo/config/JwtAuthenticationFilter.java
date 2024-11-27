@@ -56,6 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 uri.contains("api/confirmRegisterEmail") ||
                 uri.contains("api/confirmLoginEmail") ||
                 uri.contains("api/uploads") ||
-                uri.contains("api/refreshToken");
+                uri.contains("api/refreshToken") ||
+                uri.contains("api/logout");
     }
 }

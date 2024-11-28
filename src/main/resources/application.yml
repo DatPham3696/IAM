@@ -40,12 +40,17 @@ spring:
       name: admin
       password: password
     oauth2:
-      client:
-        registration:
-          github:
-            client-id: Ov23liSMUAYlfBae7nWd
-            client-secret: 4027d992c26ec04f7beb46c932c085d845bfb60e
+#      client:
+#        registration:
+#          github:
+#            client-id: Ov23liSMUAYlfBae7nWd
+#            client-secret: 4027d992c26ec04f7beb46c932c085d845bfb60e
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/IAM
+          jwk-set-uri: http://localhost:8080/realms/IAM/protocol/openid-connect/certs
 idp:
+  enabled: true
   url: http://localhost:8080
   client-id: aim_app
   client-secret: gCmqsGzo2kEwgUCJtPhYIlTNDX1KFau1

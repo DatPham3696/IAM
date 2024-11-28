@@ -17,5 +17,6 @@ import java.util.Date;
 public class InvalidToken {
     @Id
     private String id;
-    Date expiryTime;
+    private Date expiryTime;
+    private String refreshToken;
 }

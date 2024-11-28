@@ -4,14 +4,14 @@ import com.example.security_demo.dtos.identity.Credential;
 import com.example.security_demo.dtos.identity.TokenExchangeParam;
 import com.example.security_demo.dtos.identity.TokenExchangeResponse;
 import com.example.security_demo.dtos.identity.UserCreationParam;
-import com.example.security_demo.dtos.identityRequest.RegistrationRequest;
+import com.example.security_demo.dtos.userDtos.RefreshTokenKeycloak;
+import com.example.security_demo.dtos.userDtos.RefreshTokenRequest;
 import com.example.security_demo.dtos.userDtos.RegisterDTO;
 import com.example.security_demo.entity.Logout;
-import com.example.security_demo.repository.IdentityClient;
+import com.example.security_demo.service.keyCloakService.IdentityClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +27,8 @@ public class UserKeycloakService {
     String clientSecret;
     private final IdentityClient identityClient;
 
-    public String createKeycloakUser(RegisterDTO registerDTO){
-        ResponseEntity<?> response =  identityClient.createUser("Bearer " + token().getAccessToken(), UserCreationParam.builder()
+    public ResponseEntity<?> createKeycloakUser(RegisterDTO registerDTO){
+        return identityClient.createUser("Bearer " + token().getAccessToken(), UserCreationParam.builder()
                         .username(registerDTO.getUserName())
                         .firstName(registerDTO.getUserName())
                         .lastName(registerDTO.getUserName())
@@ -41,7 +41,9 @@ public class UserKeycloakService {
                                         .value(registerDTO.getPassWord())
                                 .build()))
                 .build());
-        return extractUserId(response);
+    }
+    public String getKeycloakUserId(RegisterDTO registerDTO){
+        return extractUserId(createKeycloakUser(registerDTO));
     }
     private String extractUserId(ResponseEntity<?> response){
         String location = response.getHeaders().get("Location").getFirst();
@@ -67,5 +69,13 @@ public class UserKeycloakService {
         } else {
             return "Error logging out from Keycloak: " + response.getStatusCode();
         }
+    }
+    public ResponseEntity<?> refreshToken(RefreshTokenRequest request){
+        return identityClient.refeshToken(RefreshTokenKeycloak.builder()
+                        .grant_type("refresh_token")
+                        .client_id(clientId)
+                        .client_secret(clientSecret)
+                        .refresh_token(request.getRefreshToken())
+                .build());
     }
 }

@@ -1,6 +1,5 @@
 package com.example.security_demo.service;
 
-import com.example.security_demo.config.JwtTokenUtils;
 import com.example.security_demo.entity.RefreshToken;
 import com.example.security_demo.repository.IRefreshTokenRepository;
 import com.example.security_demo.repository.IUserRepository;
@@ -20,7 +19,6 @@ public class RefreshTokenService {
     @Value("${spring.security.authentication.jwt.jwt_refresh_expiration}")
     private Long refreshTokenDuration ;
     private final IRefreshTokenRepository refreshTokenRepository;
-    private final JwtTokenUtils jwtTokenUtils;
     private final IUserRepository userRepository;
     public Optional<RefreshToken> findByToken(String token){
         return refreshTokenRepository.findByToken(token);

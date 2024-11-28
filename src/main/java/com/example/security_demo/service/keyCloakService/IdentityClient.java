@@ -1,8 +1,9 @@
-package com.example.security_demo.repository;
+package com.example.security_demo.service.keyCloakService;
 
 import com.example.security_demo.dtos.identity.TokenExchangeParam;
 import com.example.security_demo.dtos.identity.TokenExchangeResponse;
 import com.example.security_demo.dtos.identity.UserCreationParam;
+import com.example.security_demo.dtos.userDtos.RefreshTokenKeycloak;
 import com.example.security_demo.entity.Logout;
 import feign.QueryMap;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -18,4 +19,6 @@ public interface IdentityClient {
     public ResponseEntity<?> createUser(@RequestHeader("authorization") String token, @RequestBody UserCreationParam param);
     @PostMapping(value = "/realms/IAM/protocol/openid-connect/logout", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<?> logout(@RequestHeader("authorization") String authorizationHeader, @QueryMap Logout logout);
+    @PostMapping(value = "/realms/IAM/protocol/openid-connect/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<?> refeshToken(@QueryMap RefreshTokenKeycloak request);
 }

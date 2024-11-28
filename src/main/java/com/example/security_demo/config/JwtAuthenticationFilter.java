@@ -7,6 +7,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,15 +17,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
+@ConditionalOnProperty(name = "idp.enabled", havingValue = "false")
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenUtils jwtTokenUtils;
     private final UserInforDetailService userDetailsService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        log.info("{}" ,request.getHeader("Authorization"));
         String token = getJwtFromRequest(request);
         if (isPublicEndpoint(request)) {
             filterChain.doFilter(request, response);
@@ -48,6 +52,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
+//    private boolean isKeycloakToken(String token){
+//        String issuer = jwtTokenUtils.get
+//    }
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String uri = request.getRequestURI();
         return uri.contains("api/login") ||

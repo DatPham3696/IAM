@@ -1,35 +1,35 @@
 package com.example.security_demo.entity;
 
-import com.example.security_demo.repository.IRoleRepository;
-import com.example.security_demo.repository.IUserRepository;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.print.attribute.standard.MediaSize;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "users")
 public class User implements UserDetails{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
-    private Long id;
+    private String id;
     @Column(name = "username")
     private String userName;
     @Column(name = "password")
@@ -42,12 +42,27 @@ public class User implements UserDetails{
     private String address;
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
-    @Column(name = "enable")
-    private boolean enable = false;
+    @Column(name = "email_verified")
+    private boolean emailVerified = false;
     private String verificationCode;
     @Column(name = "profile_picture")
     private String profilePicture;
     private String keyclUserId;
+    private Boolean deleted;
+    @Column(name = "enabled")
+    private boolean enabled;
+    @CreatedDate
+    @Column(name = "created_date", updatable = false)
+    private LocalDateTime createdDate;
+    @LastModifiedDate
+    @Column(name = "last_modified_at")
+    private LocalDateTime lastModifiedDate;
+    @CreatedBy
+    @Column(name = "created_by")
+    private String createdBy;
+    @LastModifiedBy
+    @Column(name = "last_modified_by")
+    private String lastModifyBy;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

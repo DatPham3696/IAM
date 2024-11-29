@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -43,12 +45,12 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUserById(@PathVariable("userId") Long userId) {
+    public ResponseEntity<?> getUserById(@PathVariable("userId") String userId) {
         return ResponseEntity.ok(defaultUserService.getUserById(userId));
     }
 
     @PutMapping("update/{userId}")
-    public ResponseEntity<?> updateUserById(@Valid @PathVariable("userId") Long userId, @RequestBody UpdateInforRequestDTO updateInforRequestDTO) {
+    public ResponseEntity<?> updateUserById(@Valid @PathVariable("userId") String userId, @RequestBody UpdateInforRequestDTO updateInforRequestDTO) {
         try {
             return ResponseEntity.ok(defaultUserService.updateUserInfo(userId, updateInforRequestDTO));
         } catch (UserNotFoundException ex) {
@@ -59,7 +61,7 @@ public class UserController {
     }
 
     @PutMapping("changePassword/{userId}")
-    public ResponseEntity<?> changeUserPassword(@PathVariable("userId") Long userId, @RequestBody ChangePasswordRequest changePasswordRequest) {
+    public ResponseEntity<?> changeUserPassword(@PathVariable("userId") String userId, @RequestBody ChangePasswordRequest changePasswordRequest) {
         try {
             defaultUserService.changePassword(userId, changePasswordRequest);
             return ResponseEntity.ok("Change password successful");
@@ -74,7 +76,7 @@ public class UserController {
     }
 
     @PostMapping("/resetPasswordToken")
-    public ResponseEntity<?> restPasswordByToken(@RequestBody RetakePasswordByTokenDTO retakePasswordByTokenDTO) {
+    public ResponseEntity<?> resetPasswordByToken(@RequestBody RetakePasswordByTokenDTO retakePasswordByTokenDTO) {
         return ResponseEntity.ok(defaultUserService.resetPasswordByToken(retakePasswordByTokenDTO));
     }
 
@@ -111,6 +113,28 @@ public class UserController {
     public ResponseEntity<?> logoutKcl(@RequestHeader("authorization") String authorizationHeader,
                                        @RequestParam("refresh_token") String refreshToken) {
         return ResponseEntity.ok().body(userKeycloakService.logout(authorizationHeader, refreshToken));
+    }
+
+    @PostMapping("softDeleted/{userId}")
+    public ResponseEntity<?> softDeleted(@PathVariable("userId") String userId, @RequestBody SoftDeleteRequest request) {
+        return ResponseEntity.ok().body(defaultUserService.deletedSoft(userId, request));
+    }
+
+    @PostMapping("/enableUser/{userId}")
+    public ResponseEntity<?> enableUser(@RequestHeader("authorization") String authorizationHeader, @PathVariable("userId") String userId,
+                                        @RequestBody EnableUserRequest request) {
+        return ResponseEntity.ok().body(userService.enableUser(authorizationHeader, userId, request));
+    }
+
+    @PostMapping("/resetPasswordSync/{userId}")
+    public ResponseEntity<?> resetPassword(@RequestHeader("authorization") String accessToken, @PathVariable("userId") String userId,
+                                           @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok().body(userService.resetPassword(accessToken, userId, request));
+    }
+
+    @PostMapping("/getUserInfor")
+    public ResponseEntity<?> getUserInfor(@RequestHeader("authorization") String accessToken) {
+        return ResponseEntity.ok().body(userService.getUserInfor(accessToken));
     }
 //    @PostMapping(value = "uploads/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 //    public ResponseEntity<?> uploadImage(@PathVariable("userId") Long userId, @ModelAttribute("files") MultipartFile file) throws IOException {

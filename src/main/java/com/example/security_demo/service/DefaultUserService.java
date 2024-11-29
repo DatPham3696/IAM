@@ -8,8 +8,8 @@ import com.example.security_demo.exception.InvalidPasswordException;
 import com.example.security_demo.exception.UserExistedException;
 import com.example.security_demo.exception.UserNotFoundException;
 import com.example.security_demo.repository.*;
-import com.example.security_demo.service.keyCloakService.IUserServiceStrategy;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -48,7 +48,7 @@ public class DefaultUserService{
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
             throw new UserExistedException("Email already exists");
         }
-        Role role = roleRepository.findByRoleName("ROLE_ADMIN");
+        Role role = roleRepository.findByRoleName("ROLE_USER");
         if (role == null) {
             throw new RuntimeException("Role not found: ROLE_USER");
         }
@@ -93,8 +93,8 @@ public class DefaultUserService{
 
     public boolean confirmRegisterCode(String code) {
         User user = userRepository.findByVerificationCode(code);
-        if (user != null && !user.isEnable()) {
-            user.setEnable(true);
+        if (user != null && !user.isEmailVerified()) {
+            user.setEmailVerified(true);
             userRepository.save(user);
             return true;
         }
@@ -132,7 +132,7 @@ public class DefaultUserService{
             String token = jwtTokenUtils.generateToken(user);
             return JwtResponse.builder()
                     .accessToken(token)
-                    .refreshToken(refreshTokenService.createRefreshToken(user.getId(), jwtTokenUtils.getJtiFromToken(token)).getToken())
+                    .refreshToken(refreshTokenService.createRefreshToken(user.getId(), jwtTokenUtils.getJtiFromToken(token)).getRefreshToken())
                     .build();
         } else {
             throw new RuntimeException("Invalid code");
@@ -175,7 +175,7 @@ public class DefaultUserService{
     }
 
 //    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
-    public UserResponseDTO getUserById(Long userId) {
+    public UserResponseDTO getUserById(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Cant find user"));
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
         Role role = roleRepository.findById(roleUser.getRoleId()).orElseThrow(() -> new RuntimeException("Cant find roleName"));
@@ -193,7 +193,7 @@ public class DefaultUserService{
     }
 
 //    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
-    public UserResponseDTO updateUserInfo(Long userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException,
+    public UserResponseDTO updateUserInfo(String userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException,
             UserExistedException {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -237,7 +237,7 @@ public class DefaultUserService{
     }
 
     @PostAuthorize("returnObject.email == authentication.name")
-    public ChangePasswordResponse changePassword(Long userId, ChangePasswordRequest changePasswordRequest) throws InvalidPasswordException {
+    public ChangePasswordResponse changePassword(String userId, ChangePasswordRequest changePasswordRequest) throws InvalidPasswordException {
         User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
             throw new InvalidPasswordException("Password not match");
@@ -275,22 +275,64 @@ public class DefaultUserService{
     }
 
     public String logout(String accessToken, String refreshToken) {
+        if(accessToken.startsWith("Bearer")){
+            accessToken = accessToken.substring(7).trim();
+        }
         InvalidToken invalidToken = InvalidToken.builder()
                 .id(jwtTokenUtils.getJtiFromToken(accessToken))
                 .expiryTime(jwtTokenUtils.getExpirationTimeFromToken(accessToken))
-                .refreshToken(refreshToken)
+                .refreshTokenId(jwtTokenUtils.getJtiFromToken(refreshToken))
                 .build();
         invalidTokenRepository.save(invalidToken);
         return "logout success";
     }
-
-    public User getUById(Long userId) {
+    @Transactional
+    public String deletedSoft(String userId, SoftDeleteRequest request){
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Not find user"));
+        boolean status = request.isStatus();
+        user.setDeleted(status);
+        userRepository.save(user);
+        return "User updated";
+    }
+    public User getUById(String userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
-
     public User updateUser(User user) {
         return userRepository.save(user);
+    }
+    public String enableUser(String userId, EnableUserRequest request){
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Not find user"));
+        boolean enabled = request.isEnabled();
+        user.setEnabled(enabled);
+        userRepository.save(user);
+        return "User updated";
+    }
+    public String resetPassword( String userId,ResetPasswordRequest request){
+        User user = userRepository.findByKeyclUserId(userId);
+        user.setPassWord(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return "Reset password successfull";
+    }
+    public UserResponseDTO getUserInfor(String token){
+        User user = userRepository.findByEmail(jwtTokenUtils.getSubFromToken(token)).get();
+        RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
+        Role role = roleRepository.findById(roleUser.getRoleId())
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+        List<String> descriptions = rolePermissionRepository.findAllByRoleId(role.getId()).stream()
+                .map(RolePermission::getPermissionId)
+                .map(permissionId -> permissionRepository.findById(permissionId)
+                        .map(Permission::getDescription)
+                        .orElse("Unknown Permission"))
+                .toList();
+        return UserResponseDTO.builder()
+                .userName(user.getUsername())
+                .email(user.getEmail())
+                .address(user.getAddress())
+                .dateOfBirth(user.getDateOfBirth())
+                .roleName(role.getRoleName())
+                .perDescription(descriptions)
+                .build();
     }
 }
 

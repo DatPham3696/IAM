@@ -1,5 +1,6 @@
 package com.example.security_demo.service;
 
+import com.example.security_demo.config.JwtTokenUtils;
 import com.example.security_demo.entity.RefreshToken;
 import com.example.security_demo.repository.IRefreshTokenRepository;
 import com.example.security_demo.repository.IUserRepository;
@@ -20,15 +21,16 @@ public class RefreshTokenService {
     private Long refreshTokenDuration ;
     private final IRefreshTokenRepository refreshTokenRepository;
     private final IUserRepository userRepository;
+    private final JwtTokenUtils jwtTokenUtils;
     public Optional<RefreshToken> findByToken(String token){
-        return refreshTokenRepository.findByToken(token);
+        return refreshTokenRepository.findByRefreshToken(token);
     }
-    public RefreshToken createRefreshToken(Long userId, String accessTokenId){
+    public RefreshToken createRefreshToken(String userId, String accessTokenId){
         RefreshToken refreshToken = new RefreshToken();
 //        refreshToken.setId(1L); //
         refreshToken.setUserId(userId);
         refreshToken.setExpiryDate(new Date(System.currentTimeMillis() + refreshTokenDuration));
-        refreshToken.setToken(UUID.randomUUID().toString());
+        refreshToken.setRefreshToken(jwtTokenUtils.generateToken(userRepository.findById(userId).get()));
         refreshToken.setAccessTokenId(accessTokenId);
 
         return refreshTokenRepository.save(refreshToken);
@@ -41,7 +43,7 @@ public class RefreshTokenService {
         return token;
     }
     @Transactional
-    public void deleteByUserId(Long userId) {
+    public void deleteByUserId(String userId) {
         refreshTokenRepository.deleteByUserId(userId);
     }
 }

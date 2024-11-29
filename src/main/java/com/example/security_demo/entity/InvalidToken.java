@@ -18,5 +18,5 @@ public class InvalidToken {
     @Id
     private String id;
     private Date expiryTime;
-    private String refreshToken;
+    private String refreshTokenId;
 }

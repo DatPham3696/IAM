@@ -19,12 +19,12 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-    @Column(name = "token")
-    private String token;
+    @Column(name = "refresh_token", columnDefinition = "TEXT")
+    private String refreshToken;
     @Column(name = "expiry_date")
     private Date expiryDate;
     @Column(name = "user_id")
-    private Long userId;
+    private String userId;
     @Column(name = "access_token_id")
     private String accessTokenId;
 }

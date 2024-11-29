@@ -1,9 +1,6 @@
 package com.example.security_demo.service;
 
-import com.example.security_demo.dtos.userDtos.LogoutRequest;
-import com.example.security_demo.dtos.userDtos.RefreshTokenRequest;
-import com.example.security_demo.dtos.userDtos.RegisterDTO;
-import com.example.security_demo.dtos.userDtos.UserResponseDTO;
+import com.example.security_demo.dtos.userDtos.*;
 import com.example.security_demo.exception.UserExistedException;
 import com.example.security_demo.service.keyCloakService.IUserServiceStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +40,34 @@ public class UserService implements IUserServiceStrategy {
             return ResponseEntity.ok().body(defaultUserService.logout(accessToken, refreshToken));
         }
     }
+
+    @Override
+    public ResponseEntity<?> enableUser(String accessToken, String userId, EnableUserRequest request) {
+        if(keycloakEnabled){
+            return ResponseEntity.ok().body(userKeycloakService.enableUser(accessToken,userId, request));
+        }else{
+            return ResponseEntity.ok().body(defaultUserService.enableUser(userId, request));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> resetPassword(String accessToken, String userId, ResetPasswordRequest request) {
+        userKeycloakService.resetPassword(accessToken,userId,request);
+        defaultUserService.resetPassword(userId,request);
+        return ResponseEntity.ok().body("Change password successful");
+    }
+
+    @Override
+    public ResponseEntity<?> getUserInfor(String accessToken) {
+        if(keycloakEnabled) {
+            return ResponseEntity.ok().body(userKeycloakService.getUserInfor(accessToken));
+        }
+//        }else{
+//            return ResponseEntity.ok().body(defaultUserService.getUserInfor(accessToken));
+//        }
+        return null;
+    }
+
 
 }
 

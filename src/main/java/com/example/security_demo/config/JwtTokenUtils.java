@@ -17,8 +17,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class JwtTokenUtils {
-    //    @Value("${jwt.secret}")
-    //private final String secretKey = "yPTyD4NJtTyXxf9v+Y9bPerZs6XtiCyD+fNdlB/lRmdq4UrpOK6brnicDMZXbgiq";
     private final IRoleRepository roleRepository;
     private final IPermissionRepository permissionRepository;
     private final IRolePermissionRepository rolePermissionRepository;

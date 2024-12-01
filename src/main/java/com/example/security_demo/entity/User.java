@@ -25,7 +25,7 @@ import java.util.List;
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "users")
-public class User implements UserDetails{
+public class User extends Auditable implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
@@ -51,18 +51,6 @@ public class User implements UserDetails{
     private Boolean deleted;
     @Column(name = "enabled")
     private boolean enabled;
-    @CreatedDate
-    @Column(name = "created_date", updatable = false)
-    private LocalDateTime createdDate;
-    @LastModifiedDate
-    @Column(name = "last_modified_at")
-    private LocalDateTime lastModifiedDate;
-    @CreatedBy
-    @Column(name = "created_by")
-    private String createdBy;
-    @LastModifiedBy
-    @Column(name = "last_modified_by")
-    private String lastModifyBy;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

@@ -18,14 +18,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RefreshTokenService {
     @Value("${spring.security.authentication.jwt.jwt_refresh_expiration}")
-    private Long refreshTokenDuration ;
+    private Long refreshTokenDuration;
     private final IRefreshTokenRepository refreshTokenRepository;
     private final IUserRepository userRepository;
     private final JwtTokenUtils jwtTokenUtils;
-    public Optional<RefreshToken> findByToken(String token){
+
+    public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByRefreshToken(token);
     }
-    public RefreshToken createRefreshToken(String userId, String accessTokenId){
+
+    public RefreshToken createRefreshToken(String userId, String accessTokenId) {
         RefreshToken refreshToken = new RefreshToken();
 //        refreshToken.setId(1L); //
         refreshToken.setUserId(userId);
@@ -35,13 +37,15 @@ public class RefreshTokenService {
 
         return refreshTokenRepository.save(refreshToken);
     }
-    public RefreshToken verifyRefreshToken(RefreshToken token){
-        if(token.getExpiryDate().before(new Date())){
+
+    public RefreshToken verifyRefreshToken(RefreshToken token) {
+        if (token.getExpiryDate().before(new Date())) {
             refreshTokenRepository.delete(token);
             throw new RuntimeException("Token was expired");
         }
         return token;
     }
+
     @Transactional
     public void deleteByUserId(String userId) {
         refreshTokenRepository.deleteByUserId(userId);

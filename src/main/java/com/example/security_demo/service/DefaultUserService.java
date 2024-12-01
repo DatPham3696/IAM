@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DefaultUserService{
+public class DefaultUserService {
     private final IUserRepository userRepository;
     private final IRoleRepository roleRepository;
     private final JwtTokenUtils jwtTokenUtils;
@@ -174,7 +174,7 @@ public class DefaultUserService{
         throw new RuntimeException("Error");
     }
 
-//    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
+    //    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
     public UserResponseDTO getUserById(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Cant find user"));
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
@@ -192,7 +192,7 @@ public class DefaultUserService{
                 .build();
     }
 
-//    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
+    //    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
     public UserResponseDTO updateUserInfo(String userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException,
             UserExistedException {
         User existingUser = userRepository.findById(userId)
@@ -275,7 +275,7 @@ public class DefaultUserService{
     }
 
     public String logout(String accessToken, String refreshToken) {
-        if(accessToken.startsWith("Bearer")){
+        if (accessToken.startsWith("Bearer")) {
             accessToken = accessToken.substring(7).trim();
         }
         InvalidToken invalidToken = InvalidToken.builder()
@@ -286,35 +286,32 @@ public class DefaultUserService{
         invalidTokenRepository.save(invalidToken);
         return "logout success";
     }
+
     @Transactional
-    public String deletedSoft(String userId, SoftDeleteRequest request){
+    public String deletedSoft(String userId, SoftDeleteRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Not find user"));
         boolean status = request.isStatus();
         user.setDeleted(status);
         userRepository.save(user);
         return "User updated";
     }
-    public User getUById(String userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
-    public User updateUser(User user) {
-        return userRepository.save(user);
-    }
-    public String enableUser(String userId, EnableUserRequest request){
+
+    public String enableUser(String userId, EnableUserRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Not find user"));
         boolean enabled = request.isEnabled();
         user.setEnabled(enabled);
         userRepository.save(user);
         return "User updated";
     }
-    public String resetPassword( String userId,ResetPasswordRequest request){
+
+    public String resetPassword(String userId, ResetPasswordRequest request) {
         User user = userRepository.findByKeyclUserId(userId);
         user.setPassWord(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         return "Reset password successfull";
     }
-    public UserResponseDTO getUserInfor(String token){
+
+    public UserResponseDTO getUserInfor(String token) {
         User user = userRepository.findByEmail(jwtTokenUtils.getSubFromToken(token)).get();
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
         Role role = roleRepository.findById(roleUser.getRoleId())

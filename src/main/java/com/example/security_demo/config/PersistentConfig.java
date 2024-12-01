@@ -1,5 +1,7 @@
-package com.example.security_demo.entity;
+package com.example.security_demo.config;
 
+import com.example.security_demo.entity.AuditorAwareImpl;
+import com.example.security_demo.entity.User;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;

@@ -30,7 +30,8 @@ public class UserKeycloakService {
     @Value("${idp.enabled}")
     private boolean keycloakEnabled;
     private final IdentityClient identityClient;
-//    private final PasswordEncoder passwordEncoder;
+
+    //    private final PasswordEncoder passwordEncoder;
 //    private final DefaultUserService defaultUserService;
     public ResponseEntity<?> createKeycloakUser(RegisterDTO registerDTO) {
         return identityClient.createUser("Bearer " + token().getAccessToken(), UserCreationParam.builder()
@@ -94,14 +95,14 @@ public class UserKeycloakService {
     }
 
     public ResponseEntity<?> resetPassword(String authorizationHeader, String userId, ResetPasswordRequest request) {
-        if(keycloakEnabled){
+        if (keycloakEnabled) {
             return identityClient.resetPassword(authorizationHeader, userId,
-                ResetPasswordKclRequest.builder()
-                        .type("password")
-                        .value(request.getNewPassword())
-                        .temporary(false)
-                        .build());
-        }else {
+                    ResetPasswordKclRequest.builder()
+                            .type("password")
+                            .value(request.getNewPassword())
+                            .temporary(false)
+                            .build());
+        } else {
             return identityClient.resetPassword("Bearer " + token().getAccessToken(), userId,
                     ResetPasswordKclRequest.builder()
                             .type("password")
@@ -110,15 +111,8 @@ public class UserKeycloakService {
                             .build());
         }
     }
-    public ResponseEntity<?> getUserInfor(String authorizationHeader){
+
+    public ResponseEntity<?> getUserInfor(String authorizationHeader) {
         return identityClient.getUserInfor(authorizationHeader);
-//                ,UserInforKeycloakDTO.builder()
-//                        .grant_type(password)
-//                        .client_id(clientId)
-//                        .client_secret(clientSecret)
-//                        .username(userName)
-//                        .password(password)
-//                        .scope("openid")
-//                .build());
     }
 }

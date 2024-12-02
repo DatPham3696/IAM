@@ -1,9 +1,11 @@
 package com.example.security_demo.service.keyCloakService;
 
-import com.example.security_demo.dtos.identity.TokenExchangeParam;
-import com.example.security_demo.dtos.identity.TokenExchangeResponse;
-import com.example.security_demo.dtos.identity.UserCreationParam;
-import com.example.security_demo.dtos.userDtos.*;
+import com.example.security_demo.dto.request.user.EnableUserRequest;
+import com.example.security_demo.dto.request.user.RefreshTokenKeycloak;
+import com.example.security_demo.dto.request.user.ResetPasswordKclRequest;
+import com.example.security_demo.dto.request.identity.TokenExchangeParam;
+import com.example.security_demo.dto.request.identity.TokenExchangeResponse;
+import com.example.security_demo.dto.request.identity.UserCreationParam;
 import com.example.security_demo.entity.Logout;
 import feign.QueryMap;
 import org.springframework.cloud.openfeign.FeignClient;

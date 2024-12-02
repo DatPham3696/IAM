@@ -6,6 +6,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,8 @@ public class JwtTokenUtils {
     private final IRoleUserRepository roleUserRepository;
     @Autowired
     private TokenProvider tokenProvider;
+    @Value("${spring.security.authentication.jwt.jwt_refresh_expiration}")
+    private Long refreshTokenDuration;
 
     public JwtTokenUtils(IRoleRepository roleRepository, IPermissionRepository permissionRepository,
                          IRolePermissionRepository rolePermissionRepository, IInvalidTokenRepository invalidTokenRepository,
@@ -55,18 +58,38 @@ public class JwtTokenUtils {
 //    }
     public String generateToken(User user) {
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
-        String roleName = roleRepository.findById(roleUser.getRoleId()).get().getRoleName();
-        List<Long> permissionId = rolePermissionRepository.findAllByRoleId(roleUser.getRoleId()).stream()
-                .map(RolePermission::getPermissionId).collect(Collectors.toList());
-        List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getDescription).toList();
-        String scope = roleName + " " + String.join(" ", description);
+        String roleName = roleRepository.findById(roleUser.getRoleId()).get().getCode();
+//        List<Long> permissionId = rolePermissionRepository.findAllByRoleId(roleUser.getRoleId()).stream()
+//                .map(RolePermission::getPermissionId).collect(Collectors.toList());
+//        List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getName).toList();
+//        String scope = roleName + " " + String.join(" ", description);
         long currentTimeMillis = System.currentTimeMillis();
         Date expirationDate = new Date(currentTimeMillis + 300000);
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", user.getUsername());
         claims.put("sub", user.getEmail());
         claims.put("exp", expirationDate);
-        claims.put("scope", scope);
+        claims.put("scope", roleName);
+        claims.put("jti", UUID.randomUUID().toString());
+        String JWT = Jwts.builder().claims(claims)
+                .signWith(tokenProvider.getKeyPair().getPrivate(), Jwts.SIG.RS256)
+                .compact();
+        return JWT;
+    }
+    public String generaRefreshToken(User user) {
+        RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
+        String roleName = roleRepository.findById(roleUser.getRoleId()).get().getCode();
+//        List<Long> permissionId = rolePermissionRepository.findAllByRoleId(roleUser.getRoleId()).stream()
+//                .map(RolePermission::getPermissionId).collect(Collectors.toList());
+//        List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getName).toList();
+//        String scope = roleName + " " + String.join(" ", description);
+        long currentTimeMillis = System.currentTimeMillis();
+        Date expirationDate = new Date(currentTimeMillis + refreshTokenDuration);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", user.getUsername());
+        claims.put("sub", user.getEmail());
+        claims.put("exp", expirationDate);
+        claims.put("scope", roleName);
         claims.put("jti", UUID.randomUUID().toString());
         String JWT = Jwts.builder().claims(claims)
                 .signWith(tokenProvider.getKeyPair().getPrivate(), Jwts.SIG.RS256)

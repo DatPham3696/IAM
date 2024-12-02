@@ -29,17 +29,16 @@ public class RefreshTokenService {
 
     public RefreshToken createRefreshToken(String userId, String accessTokenId) {
         RefreshToken refreshToken = new RefreshToken();
-//        refreshToken.setId(1L); //
         refreshToken.setUserId(userId);
         refreshToken.setExpiryDate(new Date(System.currentTimeMillis() + refreshTokenDuration));
-        refreshToken.setRefreshToken(jwtTokenUtils.generateToken(userRepository.findById(userId).get()));
+        refreshToken.setRefreshToken(jwtTokenUtils.generaRefreshToken(userRepository.findById(userId).get()));
         refreshToken.setAccessTokenId(accessTokenId);
 
         return refreshTokenRepository.save(refreshToken);
     }
 
     public RefreshToken verifyRefreshToken(RefreshToken token) {
-        if (token.getExpiryDate().before(new Date())) {
+        if (jwtTokenUtils.getExpirationTimeFromToken(token.getRefreshToken()).before(new Date())) {
             refreshTokenRepository.delete(token);
             throw new RuntimeException("Token was expired");
         }

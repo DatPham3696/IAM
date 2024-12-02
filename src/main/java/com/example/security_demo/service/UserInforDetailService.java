@@ -29,7 +29,7 @@ public class UserInforDetailService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("user not found"));
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
-        String roleName = roleRepository.findById(roleUser.getRoleId()).map(Role::getRoleName).orElseThrow(()->new RuntimeException("role not found"));
+        String roleName = roleRepository.findById(roleUser.getRoleId()).map(Role::getCode).orElseThrow(()->new RuntimeException("role not found"));
         List<GrantedAuthority> authorities = new ArrayList<>();
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority(roleName);
         authorities.add(authority);

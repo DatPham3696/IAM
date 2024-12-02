@@ -2,10 +2,12 @@ package com.example.security_demo.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 @Entity
 @Table(name = "user_activity_log")
+@EntityListeners(AuditingEntityListener.class)
 @Builder
 public class UserActivityLog extends Auditable{
     @Id

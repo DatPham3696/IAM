@@ -1,6 +1,8 @@
 package com.example.security_demo.controller;
 
-import com.example.security_demo.dtos.userDtos.*;
+import com.example.security_demo.dto.request.user.*;
+import com.example.security_demo.dto.response.user.UserResponse;
+import com.example.security_demo.dto.response.user.UsersResponse;
 import com.example.security_demo.exception.InvalidPasswordException;
 import com.example.security_demo.exception.UserExistedException;
 import com.example.security_demo.exception.UserNotFoundException;
@@ -11,15 +13,16 @@ import com.example.security_demo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/users")
 public class UserController {
     private final DefaultUserService defaultUserService;
     private final UserService userService;
@@ -134,33 +137,19 @@ public class UserController {
 
     @PostMapping("/getUserInfor")
     public ResponseEntity<?> getUserInfor(@RequestHeader("authorization") String accessToken) {
-        return ResponseEntity.ok().body(userService.getUserInfor(accessToken));
+        return ResponseEntity.ok().body(defaultUserService.getUserInfor(accessToken));
     }
-//    @PostMapping(value = "uploads/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<?> uploadImage(@PathVariable("userId") Long userId, @ModelAttribute("files") MultipartFile file) throws IOException {
-//        User user = userService.getUById(userId);
-//        String fileName = storeFile(file);
-//        user.setProfilePicture(fileName);
-//        userService.updateUser(user);
-//        return ResponseEntity.ok(fileName);
-//    }
-//    private String storeFile(MultipartFile file) throws IOException {
-//        String contentType = file.getContentType();
-//        if (!contentType.startsWith("image/")) {
-//            throw new IOException("Invalid file type. Only image files are allowed.");
-//        }
-//
-//        String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-//        String uniqueFilename = UUID.randomUUID().toString() + "_" + fileName;
-//
-//        java.nio.file.Path uploadDir = Paths.get("uploads");
-//        if (!Files.exists(uploadDir)) {
-//            Files.createDirectories(uploadDir);
-//        }
-//
-//        java.nio.file.Path destination = uploadDir.resolve(uniqueFilename);
-//        Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
-//
-//        return uniqueFilename;
-//    }
+    @GetMapping("/users-infor")
+    public ResponseEntity<UsersResponse<UserResponse>> getUsers(@RequestParam(value = "keyword", required = false) String keyword,
+                                                                @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                @RequestParam(value = "size", defaultValue = "10") int size){
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok().body(defaultUserService.getUsers(keyword, pageable));
+    }
+    @GetMapping("/product")
+    @PreAuthorize("hasPermission('PRODUCT','VIEW')")
+    public ResponseEntity<String> testProduct(){
+        return ResponseEntity.ok().body("test succees");
+    } // tich hop them key cloak -> bat len find by userKeyCloakId
+
 }

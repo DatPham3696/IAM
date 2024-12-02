@@ -1,5 +1,6 @@
 package com.example.security_demo.securityConfig;
 
+import com.example.security_demo.config.CustomEvaluator;
 import com.example.security_demo.config.JwtAuthenticationFilter;
 //import com.example.security_demo.service.UserInforDetailService;
 import io.jsonwebtoken.Jwts;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,10 +34,11 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
     @Autowired(required = false)
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-    String[] PUBLIC_ENDPOINT = {"api/login/**", "api/register/**", "api/resetPasswordToken/**",
-                                "api/logoutAccount/**",
-            "api/confirmRegisterEmail/**", "api/confirmLoginEmail", "api/uploads/**", "api/refreshToken/**", "api/logout/**"};
+    String[] PUBLIC_ENDPOINT = {"api/users/login/**", "api/users/register/**", "api/users/resetPasswordToken/**",
+                                "api/users/logoutAccount/**","api/roles/create-role/**","api/permission/create-permission/**",
+            "api/users/confirmRegisterEmail/**", "api/users/confirmLoginEmail", "api/users/uploads/**", "api/users/refreshToken/**", "api/users/logout/**"};
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final String[] SWAGGER_ENDPOINT = {"/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**","/swagger-ui/index.html"};
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
     @Value("${idp.enabled}")
@@ -47,6 +51,8 @@ public class SecurityConfig {
 //                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                     .authorizeHttpRequests((request) -> request
                             .requestMatchers(PUBLIC_ENDPOINT)
+                            .permitAll()
+                            .requestMatchers(SWAGGER_ENDPOINT)
                             .permitAll()
                             .anyRequest().authenticated())
                     .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())
@@ -77,8 +83,14 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
-//    @Bean
-//    public UserDetailsService userDetailsService(){
-//        return new UserInforDetailService();
-//    }
+    @Bean
+    public CustomEvaluator customEvaluator(){
+        return new CustomEvaluator();
+    }
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+        expressionHandler.setPermissionEvaluator(customEvaluator());
+        return expressionHandler;
+    }
 }

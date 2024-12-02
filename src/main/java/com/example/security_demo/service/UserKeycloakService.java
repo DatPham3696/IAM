@@ -1,20 +1,16 @@
 package com.example.security_demo.service;
 
-import com.example.security_demo.dtos.identity.Credential;
-import com.example.security_demo.dtos.identity.TokenExchangeParam;
-import com.example.security_demo.dtos.identity.TokenExchangeResponse;
-import com.example.security_demo.dtos.identity.UserCreationParam;
-import com.example.security_demo.dtos.userDtos.*;
+import com.example.security_demo.dto.request.user.*;
+import com.example.security_demo.dto.request.identity.Credential;
+import com.example.security_demo.dto.request.identity.TokenExchangeParam;
+import com.example.security_demo.dto.request.identity.TokenExchangeResponse;
+import com.example.security_demo.dto.request.identity.UserCreationParam;
 import com.example.security_demo.entity.Logout;
-import com.example.security_demo.repository.IUserRepository;
-import com.example.security_demo.service.keyCloakService.IUserServiceStrategy;
 import com.example.security_demo.service.keyCloakService.IdentityClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.query.sql.internal.ParameterRecognizerImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

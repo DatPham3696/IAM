@@ -53,8 +53,7 @@ idp:
   enabled: false
   url: http://localhost:8080
   client-id: aim_app
-#  client-secret: gCmqsGzo2kEwgUCJtPhYIlTNDX1KFau1
-  client-secret: YFiEfI0TpUp7GahUGm5TreBeQTKLMQ7H
+  client-secret: gCmqsGzo2kEwgUCJtPhYIlTNDX1KFau1
   endpoints:
     token: /realms/IAM/protocol/openid-connect/token
     create-user: /admin/realms/IAM/users
@@ -62,4 +61,8 @@ idp:
     enable-user: /admin/realms/IAM/users/{userId}
     reset-password: /admin/realms/IAM/users/{userId}/reset-password
     user-info: /realms/IAM/protocol/openid-connect/userinfo
-
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    version: openapi_3_0

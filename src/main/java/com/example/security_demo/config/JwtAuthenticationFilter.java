@@ -57,13 +57,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //    }
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.contains("api/login") ||
-                uri.contains("api/register") ||
+        return uri.contains("api/users/login") ||
+                uri.contains("api/users/register") ||
 //                uri.contains("/logoutAccount")  ||
-                uri.contains("api/confirmRegisterEmail") ||
-                uri.contains("api/confirmLoginEmail") ||
-                uri.contains("api/uploads") ||
-                uri.contains("api/refreshToken") ||
-                uri.contains("api/logout");
+                uri.contains("api/users/confirmRegisterEmail") ||
+                uri.contains("api/users/confirmLoginEmail") ||
+                uri.contains("api/users/uploads") ||
+                uri.contains("api/users/refreshToken") ||
+                uri.contains("api/users/logout") ||
+                uri.contains("api/roles/create-role") ||
+                uri.contains("api/permission/create-permission");
     }
 }

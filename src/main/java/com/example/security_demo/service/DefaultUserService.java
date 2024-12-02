@@ -1,7 +1,11 @@
 package com.example.security_demo.service;
 
 import com.example.security_demo.config.JwtTokenUtils;
-import com.example.security_demo.dtos.userDtos.*;
+import com.example.security_demo.dto.request.user.*;
+import com.example.security_demo.dto.response.user.ChangePasswordResponse;
+import com.example.security_demo.dto.response.user.JwtResponse;
+import com.example.security_demo.dto.response.user.UserResponse;
+import com.example.security_demo.dto.response.user.UsersResponse;
 import com.example.security_demo.entity.*;
 import com.example.security_demo.enums.LogInfor;
 import com.example.security_demo.exception.InvalidPasswordException;
@@ -12,6 +16,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,11 +50,11 @@ public class DefaultUserService {
     private final RefreshTokenService refreshTokenService;
     private final UserKeycloakService userKeycloakService;
 
-    public UserResponseDTO register(RegisterDTO registerDTO) throws UserExistedException {
+    public UserResponse register(RegisterDTO registerDTO) throws UserExistedException {
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
             throw new UserExistedException("Email already exists");
         }
-        Role role = roleRepository.findByRoleName("ROLE_USER");
+        Role role = roleRepository.findByCode("USER").orElseThrow(() -> new RuntimeException("role not found"));
         if (role == null) {
             throw new RuntimeException("Role not found: ROLE_USER");
         }
@@ -72,7 +78,7 @@ public class DefaultUserService {
         List<String> descriptions = rolePermissionRepository.findAllByRoleId(role.getId()).stream()
                 .map(RolePermission::getPermissionId)
                 .map(permissionId -> permissionRepository.findById(permissionId)
-                        .map(Permission::getDescription)
+                        .map(Permission::getScope)
                         .orElse("Unknown Permission"))
                 .toList();
 
@@ -81,12 +87,12 @@ public class DefaultUserService {
                 "Thank you for registering an account. Please click the link below to confirm your account:\n" +
                 "http://localhost:8080/confirmemail?code=" + verificationCode;
         emailService.sendEmail(user.getEmail(), sub, text);
-        return UserResponseDTO.builder()
+        return UserResponse.builder()
                 .userName(user.getUsername())
                 .email(user.getEmail())
                 .address(user.getAddress())
                 .dateOfBirth(user.getDateOfBirth())
-                .roleName(role.getRoleName())
+                .roleName(role.getCode())
                 .perDescription(descriptions)
                 .build();
     }
@@ -175,14 +181,14 @@ public class DefaultUserService {
     }
 
     //    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
-    public UserResponseDTO getUserById(String userId) {
+    public UserResponse getUserById(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Cant find user"));
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
         Role role = roleRepository.findById(roleUser.getRoleId()).orElseThrow(() -> new RuntimeException("Cant find roleName"));
-        String roleName = role.getRoleName();
+        String roleName = role.getCode();
         List<Long> permissionId = rolePermissionRepository.findAllByRoleId(role.getId()).stream().map(RolePermission::getPermissionId).toList();
-        List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getDescription).toList();
-        return UserResponseDTO.builder()
+        List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getScope).toList();
+        return UserResponse.builder()
                 .userName(user.getUsername())
                 .email(user.getEmail())
                 .address(user.getAddress())
@@ -193,7 +199,7 @@ public class DefaultUserService {
     }
 
     //    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
-    public UserResponseDTO updateUserInfo(String userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException,
+    public UserResponse updateUserInfo(String userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException,
             UserExistedException {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -210,7 +216,7 @@ public class DefaultUserService {
         List<String> descriptions = rolePermissionRepository.findAllByRoleId(role.getId()).stream()
                 .map(RolePermission::getPermissionId)
                 .map(permissionId -> permissionRepository.findById(permissionId)
-                        .map(Permission::getDescription)
+                        .map(Permission::getScope)
                         .orElse("Unknown Permission"))
                 .toList();
 
@@ -226,12 +232,12 @@ public class DefaultUserService {
                 .timestamp(LocalDateTime.now())
                 .build());
 
-        return UserResponseDTO.builder()
+        return UserResponse.builder()
                 .userName(updatedUser.getUsername())
                 .email(updatedUser.getEmail())
                 .address(updatedUser.getAddress())
                 .dateOfBirth(updatedUser.getDateOfBirth())
-                .roleName(role.getRoleName())
+                .roleName(role.getCode())
                 .perDescription(descriptions)
                 .build();
     }
@@ -308,10 +314,13 @@ public class DefaultUserService {
         User user = userRepository.findByKeyclUserId(userId);
         user.setPassWord(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        return "Reset password successfull";
+        return "Reset password successfully";
     }
 
-    public UserResponseDTO getUserInfor(String token) {
+    public UserResponse getUserInfor(String token) {
+        if(token.startsWith("Bearer")){
+            token = token.substring(7).trim();
+        }
         User user = userRepository.findByEmail(jwtTokenUtils.getSubFromToken(token)).get();
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
         Role role = roleRepository.findById(roleUser.getRoleId())
@@ -319,17 +328,28 @@ public class DefaultUserService {
         List<String> descriptions = rolePermissionRepository.findAllByRoleId(role.getId()).stream()
                 .map(RolePermission::getPermissionId)
                 .map(permissionId -> permissionRepository.findById(permissionId)
-                        .map(Permission::getDescription)
+                        .map(Permission::getScope)
                         .orElse("Unknown Permission"))
                 .toList();
-        return UserResponseDTO.builder()
+        return UserResponse.builder()
                 .userName(user.getUsername())
                 .email(user.getEmail())
                 .address(user.getAddress())
                 .dateOfBirth(user.getDateOfBirth())
-                .roleName(role.getRoleName())
+                .roleName(role.getCode())
                 .perDescription(descriptions)
                 .build();
+    }
+
+    public UsersResponse<UserResponse> getUsers(String keyword, Pageable pageable){
+        Page<User> userPage = (keyword == null || keyword.isBlank()) ? userRepository.findAll(pageable):userRepository.findByKeyWord(keyword.trim(),pageable);
+        List<UserResponse> userResponseDTOList =  userPage.getContent().stream().map(user -> UserResponse.builder()
+                .userName(user.getUsername())
+                .email(user.getEmail())
+                .address(user.getAddress())
+                .dateOfBirth(user.getDateOfBirth())
+                .build()).toList();
+        return new UsersResponse(userResponseDTOList,userPage.getTotalPages());
     }
 }
 

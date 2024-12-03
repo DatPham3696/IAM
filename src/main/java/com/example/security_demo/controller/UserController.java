@@ -48,11 +48,13 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("hasPermission('USER','VIEW')")
     public ResponseEntity<?> getUserById(@PathVariable("userId") String userId) {
         return ResponseEntity.ok(defaultUserService.getUserById(userId));
     }
 
     @PutMapping("update/{userId}")
+    @PreAuthorize("hasPermission('USER','UPDATE')")
     public ResponseEntity<?> updateUserById(@Valid @PathVariable("userId") String userId, @RequestBody UpdateInforRequestDTO updateInforRequestDTO) {
         try {
             return ResponseEntity.ok(defaultUserService.updateUserInfo(userId, updateInforRequestDTO));
@@ -63,7 +65,8 @@ public class UserController {
         }
     }
 
-    @PutMapping("changePassword/{userId}")
+    @PutMapping("change-password/{userId}")
+    @PreAuthorize("hasPermission('USER','UPDATE')")
     public ResponseEntity<?> changeUserPassword(@PathVariable("userId") String userId, @RequestBody ChangePasswordRequest changePasswordRequest) {
         try {
             defaultUserService.changePassword(userId, changePasswordRequest);
@@ -73,27 +76,29 @@ public class UserController {
         }
     }
 
-    @PostMapping("/sendEmail")
+    @PostMapping("/send-email")
+    @PreAuthorize("hasPermission('USER','UPDATE')")
     public ResponseEntity<?> sendResetPasswordRequest(@RequestParam String email) {
         return ResponseEntity.ok(defaultUserService.forgotPasswordRequest(email));
     }
 
-    @PostMapping("/resetPasswordToken")
+    @PostMapping("/reset-password-token")
+    @PreAuthorize("hasPermission('USER','UPDATE')")
     public ResponseEntity<?> resetPasswordByToken(@RequestBody RetakePasswordByTokenDTO retakePasswordByTokenDTO) {
         return ResponseEntity.ok(defaultUserService.resetPasswordByToken(retakePasswordByTokenDTO));
     }
 
-    //    @PostMapping("/logoutAccount")
+//        @PostMapping("/logoutAccount")
 //    public ResponseEntity<?> logout(@RequestParam("authorization") String authorizationHeader,@RequestParam("refresh_token") String refreshToken){
 //        defaultUserService.logout(logoutRequest);
 //        return ResponseEntity.ok( defaultUserService.logout(logoutRequest));
 //    }
-    @PostMapping("/logoutAccount")
+    @PostMapping("/logout-account")
     public ResponseEntity<?> logout(@RequestHeader("authorization") String authorizationHeader, @RequestParam("refresh_token") String refreshToken) {
         return ResponseEntity.ok(userService.logout(authorizationHeader, refreshToken));
     }
 
-    @GetMapping("/confirmRegisterEmail")
+    @GetMapping("/confirm-register-email")
     public String confirmEmail(@RequestParam String code) {
         if (defaultUserService.confirmRegisterCode(code)) {
             return "Confirm register email succesfull";
@@ -102,12 +107,12 @@ public class UserController {
         }
     }
 
-    @GetMapping("/confirmLoginEmail")
+    @GetMapping("/confirm-login-email")
     public ResponseEntity<?> confirmLoginEmail(@RequestParam String email, @RequestBody String code) {
         return ResponseEntity.ok(defaultUserService.verifyLoginGenerateToken(email, code));
     }
 
-    @PostMapping("/refreshToken")
+    @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestParam("refresh_token") RefreshTokenRequest request) {
         return ResponseEntity.ok(userService.refreshToken(request));
     }
@@ -118,38 +123,37 @@ public class UserController {
         return ResponseEntity.ok().body(userKeycloakService.logout(authorizationHeader, refreshToken));
     }
 
-    @PostMapping("softDeleted/{userId}")
+    @PostMapping("soft-delete/{userId}")
+    @PreAuthorize("hasPermission('USER','UPDATE')")
     public ResponseEntity<?> softDeleted(@PathVariable("userId") String userId, @RequestBody SoftDeleteRequest request) {
         return ResponseEntity.ok().body(defaultUserService.deletedSoft(userId, request));
     }
 
-    @PostMapping("/enableUser/{userId}")
+    @PostMapping("/enable-user/{userId}")
     public ResponseEntity<?> enableUser(@RequestHeader("authorization") String authorizationHeader, @PathVariable("userId") String userId,
                                         @RequestBody EnableUserRequest request) {
         return ResponseEntity.ok().body(userService.enableUser(authorizationHeader, userId, request));
     }
 
-    @PostMapping("/resetPasswordSync/{userId}")
+    @PostMapping("/reset-password-sync/{userId}")
     public ResponseEntity<?> resetPassword(@RequestHeader("authorization") String accessToken, @PathVariable("userId") String userId,
                                            @RequestBody ResetPasswordRequest request) {
         return ResponseEntity.ok().body(userService.resetPassword(accessToken, userId, request));
     }
 
-    @PostMapping("/getUserInfor")
+    @PostMapping("/get-user-infor")
+    @PreAuthorize("hasPermission('USER','VIEW')")
     public ResponseEntity<?> getUserInfor(@RequestHeader("authorization") String accessToken) {
         return ResponseEntity.ok().body(defaultUserService.getUserInfor(accessToken));
     }
     @GetMapping("/users-infor")
     public ResponseEntity<UsersResponse<UserResponse>> getUsers(@RequestParam(value = "keyword", required = false) String keyword,
                                                                 @RequestParam(value = "page", defaultValue = "0") int page,
-                                                                @RequestParam(value = "size", defaultValue = "10") int size){
+                                                                @RequestParam(value = "size", defaultValue = "10") int size,
+                                                                @RequestParam(value = "sort", defaultValue = "asc") String sort,
+                                                                @RequestParam(value = "attribute") String attribute){
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok().body(defaultUserService.getUsers(keyword, pageable));
+        return ResponseEntity.ok().body(defaultUserService.getUsers(keyword,sort ,pageable, attribute));
     }
-    @GetMapping("/product")
-    @PreAuthorize("hasPermission('PRODUCT','VIEW')")
-    public ResponseEntity<String> testProduct(){
-        return ResponseEntity.ok().body("test succees");
-    } // tich hop them key cloak -> bat len find by userKeyCloakId
 
 }

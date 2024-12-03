@@ -9,13 +9,17 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomEvaluator implements PermissionEvaluator {
@@ -29,26 +33,50 @@ public class CustomEvaluator implements PermissionEvaluator {
     private IRolePermissionRepository rolePermissionRepository;
     @Autowired
     private IPermissionRepository permissionRepository;
-
+    @Value("${idp.enabled}")
+    private boolean keycloakEnabled;
     public CustomEvaluator() {
     }
-
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        List<Long> roleIds = roleUserRepository.findAllByUserId(user.getId()).stream().map(RoleUser::getRoleId).toList();
-        Long roleAdminId = roleRepository.findByCode(EnumRole.ADMIN.name()).get().getId();
-        if (roleIds.contains(roleAdminId)) {
+        String userId;
+        if (keycloakEnabled) {
+            userId = authentication.getName();
+        } else {
+            userId = authentication.getName();
+        }
+        User user = getUserById(userId);
+
+        if (hasAdminRole(user)) {
             return true;
         }
-        Optional<Long> permissionId = permissionRepository.findPermissionIdByUserAndResourceCodeAndScope(user.getId(),
-                targetDomainObject.toString(),
-                permission.toString());
-        if (permissionId.isPresent()) {
-            return true;
+        return hasPermissionForResource(user, targetDomainObject, permission);
+    }
+
+    private User getUserById(String userId) {
+        if (keycloakEnabled) {
+            return userRepository.findByKeyclUserId(userId);
+        } else {
+            return userRepository.findByEmail(userId).orElseThrow(() -> new RuntimeException("User not found"));
         }
-        return false;
+    }
+
+    private boolean hasAdminRole(User user) {
+        List<Long> roleIds = roleUserRepository.findAllByUserId(user.getId()).stream()
+                .map(RoleUser::getRoleId)
+                .collect(Collectors.toList());
+
+        Long roleAdminId = roleRepository.findByCode(EnumRole.ADMIN.name())
+                .map(role -> role.getId())
+                .orElseThrow(() -> new RuntimeException("Admin role not found"));
+        return roleIds.contains(roleAdminId);
+    }
+
+    private boolean hasPermissionForResource(User user, Object targetDomainObject, Object permission) {
+        return permissionRepository.findPermissionIdByUserAndResourceCodeAndScope(user.getId(),
+                        targetDomainObject.toString(),
+                        permission.toString())
+                .isPresent();
     }
 
     @Override

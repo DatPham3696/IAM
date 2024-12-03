@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 public class PermissionService {
     private final IPermissionRepository permissionRepository;
     public Permission addPermission(Permission permission){
-        if(permissionRepository.findByScope(permission.getScope()).isPresent() &&
-            permissionRepository.findByResourceCode(permission.getResourceCode()).isPresent()){
+        if(permissionRepository.existsByScopeAndResourceCode(permission.getScope(), permission.getResourceCode())){
             throw new IllegalArgumentException("data existed");
         }
         return permissionRepository.save(permission);

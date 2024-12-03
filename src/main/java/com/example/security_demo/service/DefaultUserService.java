@@ -17,7 +17,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -341,8 +343,15 @@ public class DefaultUserService {
                 .build();
     }
 
-    public UsersResponse<UserResponse> getUsers(String keyword, Pageable pageable){
-        Page<User> userPage = (keyword == null || keyword.isBlank()) ? userRepository.findAll(pageable):userRepository.findByKeyWord(keyword.trim(),pageable);
+    public UsersResponse<UserResponse> getUsers(String keyword,String sort, Pageable pageable, String attribute){
+        Sort.Order order = new Sort.Order(Sort.Direction.ASC, attribute);
+
+        if ("desc".equalsIgnoreCase(sort)) {
+            order = new Sort.Order(Sort.Direction.DESC, attribute);
+        }
+
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(order));
+        Page<User> userPage = (keyword == null || keyword.isBlank()) ? userRepository.findAll(sortedPageable):userRepository.findByKeyWord(keyword.trim(),sortedPageable );
         List<UserResponse> userResponseDTOList =  userPage.getContent().stream().map(user -> UserResponse.builder()
                 .userName(user.getUsername())
                 .email(user.getEmail())

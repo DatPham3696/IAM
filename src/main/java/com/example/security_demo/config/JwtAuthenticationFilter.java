@@ -60,12 +60,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return uri.contains("api/users/login") ||
                 uri.contains("api/users/register") ||
 //                uri.contains("/logoutAccount")  ||
-                uri.contains("api/users/confirmRegisterEmail") ||
-                uri.contains("api/users/confirmLoginEmail") ||
+                uri.contains("api/users/confirm-register-email") ||
+                uri.contains("api/users/confirm-login-email") ||
                 uri.contains("api/users/uploads") ||
-                uri.contains("api/users/refreshToken") ||
-                uri.contains("api/users/logout") ||
-                uri.contains("api/roles/create-role") ||
-                uri.contains("api/permission/create-permission");
+                uri.contains("api/users/refresh-token") ||
+                uri.contains("api/users/logout") ;
     }
 }

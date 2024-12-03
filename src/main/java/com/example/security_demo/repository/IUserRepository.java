@@ -22,7 +22,7 @@ public interface IUserRepository extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
     User findByVerificationCode(String verificationCode);
     User findByKeyclUserId(String keycloakUserId);
-    @Query("SELECT u FROM User u WHERE LOWER(u.userName) LIKE LOWER (CONCAT('%', :keyword))")
+    @Query(value = "SELECT * FROM users u WHERE unaccent(u.username) ILIKE unaccent(CONCAT('%', :keyword, '%'))", nativeQuery = true)
     Page<User> findByKeyWord(@Param("keyword") String keyword, Pageable pageable);
 }
 

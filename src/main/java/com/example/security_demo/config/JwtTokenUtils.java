@@ -38,31 +38,9 @@ public class JwtTokenUtils {
         this.roleUserRepository = roleUserRepository;
     }
 
-    //    public String generateToken(User user){
-//        String role = roleRepository.findById(user.getRoleId()).get().getRoleName();
-//        List<Long> permissionId = rolePermissionRepository.findAllByRoleId(user.getRoleId()).stream()
-//                .map(RolePermission::getPermissionId).collect(Collectors.toList());
-//        List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getDescription).toList();
-//        String scope = role + " " + String.join(" ", description);
-//        long currentTimeMillis = System.currentTimeMillis();
-//        Date expirationDate = new Date(currentTimeMillis + 86400000);
-//        Map<String, Object> claims = new HashMap<>();
-//        claims.put("username",user.getUsername());
-//        claims.put("sub",user.getEmail());
-//        claims.put("exp", expirationDate);
-//        claims.put("scope", scope);
-//        String JWT = Jwts.builder().claims(claims)
-//                .signWith(SignatureAlgorithm.HS256, secretKey)
-//                .compact();
-//        return JWT;
-//    }
     public String generateToken(User user) {
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
         String roleName = roleRepository.findById(roleUser.getRoleId()).get().getCode();
-//        List<Long> permissionId = rolePermissionRepository.findAllByRoleId(roleUser.getRoleId()).stream()
-//                .map(RolePermission::getPermissionId).collect(Collectors.toList());
-//        List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getName).toList();
-//        String scope = roleName + " " + String.join(" ", description);
         long currentTimeMillis = System.currentTimeMillis();
         Date expirationDate = new Date(currentTimeMillis + 300000);
         Map<String, Object> claims = new HashMap<>();
@@ -79,10 +57,6 @@ public class JwtTokenUtils {
     public String generaRefreshToken(User user) {
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
         String roleName = roleRepository.findById(roleUser.getRoleId()).get().getCode();
-//        List<Long> permissionId = rolePermissionRepository.findAllByRoleId(roleUser.getRoleId()).stream()
-//                .map(RolePermission::getPermissionId).collect(Collectors.toList());
-//        List<String> description = permissionRepository.findAllById(permissionId).stream().map(Permission::getName).toList();
-//        String scope = roleName + " " + String.join(" ", description);
         long currentTimeMillis = System.currentTimeMillis();
         Date expirationDate = new Date(currentTimeMillis + refreshTokenDuration);
         Map<String, Object> claims = new HashMap<>();

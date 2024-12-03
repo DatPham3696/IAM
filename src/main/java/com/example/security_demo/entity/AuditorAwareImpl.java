@@ -23,7 +23,7 @@ public class AuditorAwareImpl implements AuditorAware<String> {
             if (principal instanceof Jwt jwt) {
                 name = jwt.getClaim("sub");
             } else {
-                System.out.println("Principal is not a JWT");
+                name = authentication.getName();
             }
         }
         return Optional.ofNullable(name);

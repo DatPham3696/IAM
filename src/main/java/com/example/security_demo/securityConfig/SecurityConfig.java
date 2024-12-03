@@ -23,6 +23,11 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -35,40 +40,34 @@ public class SecurityConfig {
     @Autowired(required = false)
     private JwtAuthenticationFilter jwtAuthenticationFilter;
     String[] PUBLIC_ENDPOINT = {"api/users/login/**", "api/users/register/**", "api/users/resetPasswordToken/**",
-                                "api/users/logoutAccount/**","api/roles/create-role/**","api/permission/create-permission/**",
-            "api/users/confirmRegisterEmail/**", "api/users/confirmLoginEmail", "api/users/uploads/**", "api/users/refreshToken/**", "api/users/logout/**"};
+                                "api/users/logout-account/**", "api/users/confirm-register-email/**", "api/users/confirm-login-email", "api/users/uploads/**",
+                                "api/users/refresh-token/**", "api/users/logout/**"};
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final String[] SWAGGER_ENDPOINT = {"/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**","/swagger-ui/index.html"};
+    private final String[] SWAGGER_ENDPOINT = {"/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui/index.html"};
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
     @Value("${idp.enabled}")
     private boolean keycloakEnabled;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        if(keycloakEnabled){
+        httpSecurity
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(PUBLIC_ENDPOINT)
+                        .permitAll()
+                        .requestMatchers(SWAGGER_ENDPOINT)
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        if (keycloakEnabled) {
             httpSecurity
-                    .csrf(AbstractHttpConfigurer::disable)
-//                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                    .authorizeHttpRequests((request) -> request
-                            .requestMatchers(PUBLIC_ENDPOINT)
-                            .permitAll()
-                            .requestMatchers(SWAGGER_ENDPOINT)
-                            .permitAll()
-                            .anyRequest().authenticated())
                     .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())
                             .authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                    .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-//                    .httpBasic(withDefaults());
-        }else{
+                    .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+        } else {
             httpSecurity
-                    .csrf(AbstractHttpConfigurer::disable)
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                    .authorizeHttpRequests((request) -> request
-                            .requestMatchers(PUBLIC_ENDPOINT)
-                            .permitAll()
-                            .anyRequest().authenticated())
-                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .httpBasic(withDefaults());
         }
         return httpSecurity.build();
@@ -83,14 +82,28 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
+
     @Bean
-    public CustomEvaluator customEvaluator(){
+    public CustomEvaluator customEvaluator() {
         return new CustomEvaluator();
     }
+
     @Bean
     public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
         DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
         expressionHandler.setPermissionEvaluator(customEvaluator());
         return expressionHandler;
+    }
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowedOrigins(Arrays.asList("*")); // Thay bằng domain front-end
+        corsConfiguration.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
+        corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+
+        return new CorsFilter(source);
     }
 }

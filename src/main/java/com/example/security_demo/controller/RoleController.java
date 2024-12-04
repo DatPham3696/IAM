@@ -26,7 +26,7 @@ public class RoleController {
 
     @PostMapping("/soft-role-delete/{code}")
     @PreAuthorize("hasPermission('ROLE','DELETE')")
-    public ResponseEntity<?> softDelete(@PathVariable("roleId") String code,@RequestBody SoftDeleteRoleRequest request){
+    public ResponseEntity<?> softDelete(@PathVariable("code") String code,@RequestBody SoftDeleteRoleRequest request){
         return ResponseEntity.ok().body(roleService.softDelete(code,request));
     }
 

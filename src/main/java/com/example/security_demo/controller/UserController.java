@@ -14,6 +14,7 @@ import com.example.security_demo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
@@ -46,6 +48,11 @@ public class UserController {
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
+    }
+
+    @GetMapping("/confirm-login-email")
+    public ResponseEntity<?> confirmLoginEmail(@RequestParam String email, @RequestBody String code) {
+        return ResponseEntity.ok(defaultUserService.verifyLoginGenerateToken(email, code));
     }
 
     @GetMapping("/{userId}")
@@ -108,10 +115,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/confirm-login-email")
-    public ResponseEntity<?> confirmLoginEmail(@RequestParam String email, @RequestBody String code) {
-        return ResponseEntity.ok(defaultUserService.verifyLoginGenerateToken(email, code));
-    }
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestParam("refresh_token") RefreshTokenRequest request) {

@@ -29,4 +29,6 @@ public class RefreshToken extends Auditable {
     private String userId;
     @Column(name = "access_token_id")
     private String accessTokenId;
+    @Column(name = "access_token_exp")
+    private Date accessTokenExp;
 }

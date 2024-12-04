@@ -13,5 +13,4 @@ public interface IUserServiceStrategy {
     ResponseEntity<?> logout(String accessToken, String refreshToken);
     ResponseEntity<?> enableUser(String accessToken,String userId, EnableUserRequest request);
     ResponseEntity<?> resetPassword(String accessToken, String userId, ResetPasswordRequest request);
-    ResponseEntity<?> getUserInfor(String accessToken);
 }

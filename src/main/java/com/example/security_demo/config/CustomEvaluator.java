@@ -1,6 +1,7 @@
 package com.example.security_demo.config;
 
 import com.example.security_demo.entity.Permission;
+import com.example.security_demo.entity.Role;
 import com.example.security_demo.entity.RoleUser;
 import com.example.security_demo.entity.User;
 import com.example.security_demo.enums.EnumRole;
@@ -35,17 +36,19 @@ public class CustomEvaluator implements PermissionEvaluator {
     private IPermissionRepository permissionRepository;
     @Value("${idp.enabled}")
     private boolean keycloakEnabled;
+
     public CustomEvaluator() {
     }
+
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        String userId;
+        String searchKeyword;
         if (keycloakEnabled) {
-            userId = authentication.getName();
+            searchKeyword = authentication.getName();
         } else {
-            userId = authentication.getName();
+            searchKeyword = authentication.getName();
         }
-        User user = getUserById(userId);
+        User user = getUserById(searchKeyword);
 
         if (hasAdminRole(user)) {
             return true;
@@ -53,21 +56,21 @@ public class CustomEvaluator implements PermissionEvaluator {
         return hasPermissionForResource(user, targetDomainObject, permission);
     }
 
-    private User getUserById(String userId) {
+    private User getUserById(String searchKeyword) {
         if (keycloakEnabled) {
-            return userRepository.findByKeyclUserId(userId);
+            return userRepository.findByKeyclUserId(searchKeyword);
         } else {
-            return userRepository.findByEmail(userId).orElseThrow(() -> new RuntimeException("User not found"));
+            return userRepository.findByEmail(searchKeyword).orElseThrow(() -> new RuntimeException("User not found"));
         }
     }
 
     private boolean hasAdminRole(User user) {
         List<Long> roleIds = roleUserRepository.findAllByUserId(user.getId()).stream()
                 .map(RoleUser::getRoleId)
-                .collect(Collectors.toList());
+                .toList();
 
         Long roleAdminId = roleRepository.findByCode(EnumRole.ADMIN.name())
-                .map(role -> role.getId())
+                .map(Role::getId)
                 .orElseThrow(() -> new RuntimeException("Admin role not found"));
         return roleIds.contains(roleAdminId);
     }

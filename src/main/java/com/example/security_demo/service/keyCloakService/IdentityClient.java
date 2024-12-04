@@ -25,7 +25,7 @@ public interface IdentityClient {
     public ResponseEntity<?> logout(@RequestHeader("authorization") String authorizationHeader, @QueryMap Logout logout);
 
     @PostMapping(value = "${idp.endpoints.token}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<?> refeshToken(@QueryMap RefreshTokenKeycloak request);
+    public ResponseEntity<?> refreshToken(@QueryMap RefreshTokenKeycloak request);
 
     @PutMapping(value = "${idp.endpoints.enable-user}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> enableUser(@RequestHeader("authorization") String authorizationHeader,

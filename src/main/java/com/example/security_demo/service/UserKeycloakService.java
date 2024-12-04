@@ -27,8 +27,6 @@ public class UserKeycloakService {
     private boolean keycloakEnabled;
     private final IdentityClient identityClient;
 
-    //    private final PasswordEncoder passwordEncoder;
-//    private final DefaultUserService defaultUserService;
     public ResponseEntity<?> createKeycloakUser(RegisterDTO registerDTO) {
         return identityClient.createUser("Bearer " + token().getAccessToken(), UserCreationParam.builder()
                 .username(registerDTO.getUserName())
@@ -78,7 +76,7 @@ public class UserKeycloakService {
     }
 
     public ResponseEntity<?> refreshToken(RefreshTokenRequest request) {
-        return identityClient.refeshToken(RefreshTokenKeycloak.builder()
+        return identityClient.refreshToken(RefreshTokenKeycloak.builder()
                 .grant_type("refresh_token")
                 .client_id(clientId)
                 .client_secret(clientSecret)
@@ -91,21 +89,15 @@ public class UserKeycloakService {
     }
 
     public ResponseEntity<?> resetPassword(String authorizationHeader, String userId, ResetPasswordRequest request) {
-        if (keycloakEnabled) {
-            return identityClient.resetPassword(authorizationHeader, userId,
-                    ResetPasswordKclRequest.builder()
-                            .type("password")
-                            .value(request.getNewPassword())
-                            .temporary(false)
-                            .build());
-        } else {
-            return identityClient.resetPassword("Bearer " + token().getAccessToken(), userId,
-                    ResetPasswordKclRequest.builder()
-                            .type("password")
-                            .value(request.getNewPassword())
-                            .temporary(false)
-                            .build());
-        }
+        String token = keycloakEnabled ? authorizationHeader : "Bearer " + token().getAccessToken();
+
+        ResetPasswordKclRequest resetPasswordRequest = ResetPasswordKclRequest.builder()
+                .type("password")
+                .value(request.getNewPassword())
+                .temporary(false)
+                .build();
+
+        return identityClient.resetPassword(token, userId, resetPasswordRequest);
     }
 
     public ResponseEntity<?> getUserInfor(String authorizationHeader) {

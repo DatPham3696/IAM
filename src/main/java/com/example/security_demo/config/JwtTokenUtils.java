@@ -71,10 +71,6 @@ public class JwtTokenUtils {
         return JWT;
     }
 
-//    private SecretKey getSignKey() {
-//        byte[] bytes = Base64.getDecoder().decode(secretKey);
-//        return new SecretKeySpec(bytes, tokenProvider.getKeyPair().getPublic());
-//    }
 
     public Claims getAllClaimFromToken(String token) {
         return Jwts.parser()
@@ -84,9 +80,6 @@ public class JwtTokenUtils {
                 .getPayload();
     }
 
-//    public String exTractUserName(String token) {
-//        return getAllClaimFromToken(token).getSubject();
-//    }
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         Claims claims = getAllClaimFromToken(token);
@@ -112,6 +105,12 @@ public class JwtTokenUtils {
 
     public boolean isTokenValid(String token) {
         String jti = getJtiFromToken(token);
-        return invalidTokenRepository.existsById(jti);
+        if(invalidTokenRepository.existsById(jti)){
+            if(isTokenExpired(token)){
+                invalidTokenRepository.deleteById(jti);
+            }
+            return true;
+        }
+        return false;
     }
 }

@@ -1,5 +1,6 @@
 package com.example.security_demo.controller;
 
+import com.example.security_demo.dto.request.Page.SearchRequest;
 import com.example.security_demo.dto.request.user.*;
 import com.example.security_demo.dto.response.user.UserResponse;
 import com.example.security_demo.dto.response.user.UsersResponse;
@@ -99,7 +100,7 @@ public class UserController {
     }
 
     @GetMapping("/confirm-register-email")
-    public String confirmEmail(@RequestParam String code) {
+    public String confirmEmail(@RequestParam("code") String code) {
         if (defaultUserService.confirmRegisterCode(code)) {
             return "Confirm register email succesfull";
         } else {
@@ -147,13 +148,9 @@ public class UserController {
         return ResponseEntity.ok().body(defaultUserService.getUserInfor(accessToken));
     }
     @GetMapping("/users-infor")
-    public ResponseEntity<UsersResponse<UserResponse>> getUsers(@RequestParam(value = "keyword", required = false) String keyword,
-                                                                @RequestParam(value = "page", defaultValue = "0") int page,
-                                                                @RequestParam(value = "size", defaultValue = "10") int size,
-                                                                @RequestParam(value = "sort", defaultValue = "asc") String sort,
-                                                                @RequestParam(value = "attribute") String attribute){
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok().body(defaultUserService.getUsers(keyword,sort ,pageable, attribute));
+    @PreAuthorize("hasPermission('ADMIN','ADMIN')")
+    public ResponseEntity<UsersResponse<UserResponse>> getUsers(@ModelAttribute SearchRequest request){
+        return ResponseEntity.ok().body(defaultUserService.getUsers(request));
     }
 
 }

@@ -8,6 +8,9 @@ spring:
     username: postgres
     password: postdb
     driver-class-name: org.postgresql.Driver
+  output:
+    ansi:
+      enabled: always
   jpa:
     hibernate:
       ddl-auto: update
@@ -66,3 +69,7 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     version: openapi_3_0
+logging:
+  file:
+    path: logs/
+    name: logs/application.log

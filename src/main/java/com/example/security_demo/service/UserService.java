@@ -62,18 +62,5 @@ public class UserService implements IUserServiceStrategy {
         defaultUserService.resetPassword(userId, request);
         return ResponseEntity.ok().body("Change password successful");
     }
-
-    @Override
-    public ResponseEntity<?> getUserInfor(String accessToken) {
-        if (keycloakEnabled) {
-            return ResponseEntity.ok().body(userKeycloakService.getUserInfor(accessToken));
-        }
-//        }else{
-//            return ResponseEntity.ok().body(defaultUserService.getUserInfor(accessToken));
-//        }
-        return null;
-    }
-
-
 }
 

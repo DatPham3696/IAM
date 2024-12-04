@@ -1,6 +1,7 @@
 package com.example.security_demo.service;
 
 import com.example.security_demo.config.JwtTokenUtils;
+import com.example.security_demo.dto.request.Page.SearchRequest;
 import com.example.security_demo.dto.request.user.*;
 import com.example.security_demo.dto.response.user.ChangePasswordResponse;
 import com.example.security_demo.dto.response.user.JwtResponse;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.angus.mail.imap.protocol.SearchSequence;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -58,7 +60,7 @@ public class DefaultUserService {
         }
         Role role = roleRepository.findByCode("USER").orElseThrow(() -> new RuntimeException("role not found"));
         if (role == null) {
-            throw new RuntimeException("Role not found: ROLE_USER");
+            throw new RuntimeException("Role not found: USER");
         }
         String verificationCode = UUID.randomUUID().toString().substring(0, 6);
         User user = userRepository.save(User.builder()
@@ -140,7 +142,9 @@ public class DefaultUserService {
             String token = jwtTokenUtils.generateToken(user);
             return JwtResponse.builder()
                     .accessToken(token)
-                    .refreshToken(refreshTokenService.createRefreshToken(user.getId(), jwtTokenUtils.getJtiFromToken(token)).getRefreshToken())
+                    .refreshToken(refreshTokenService.createRefreshToken(user.getId(),
+                            jwtTokenUtils.getJtiFromToken(token),
+                            jwtTokenUtils.getExpirationTimeFromToken(token)).getRefreshToken())
                     .build();
         } else {
             throw new RuntimeException("Invalid code");
@@ -173,6 +177,7 @@ public class DefaultUserService {
             invalidTokenRepository.save(
                     InvalidToken.builder()
                             .id(refreshToken.get().getAccessTokenId())
+                            .expiryTime(refreshToken.get().getAccessTokenExp())
                             .build());
             RefreshToken validRefreshToken = refreshTokenService.verifyRefreshToken(refreshToken.get());
             User user = userRepository.findById(validRefreshToken.getUserId()).orElseThrow(() -> new RuntimeException("Not find user"));
@@ -182,7 +187,6 @@ public class DefaultUserService {
         throw new RuntimeException("Error");
     }
 
-    //    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
     public UserResponse getUserById(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Cant find user"));
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
@@ -200,7 +204,6 @@ public class DefaultUserService {
                 .build();
     }
 
-    //    @PostAuthorize("returnObject.email == authentication.name or hasRole('ADMIN')")
     public UserResponse updateUserInfo(String userId, UpdateInforRequestDTO updateInforRequestDTO) throws UserNotFoundException,
             UserExistedException {
         User existingUser = userRepository.findById(userId)
@@ -320,7 +323,7 @@ public class DefaultUserService {
     }
 
     public UserResponse getUserInfor(String token) {
-        if(token.startsWith("Bearer")){
+        if (token.startsWith("Bearer")) {
             token = token.substring(7).trim();
         }
         User user = userRepository.findByEmail(jwtTokenUtils.getSubFromToken(token)).get();
@@ -343,22 +346,24 @@ public class DefaultUserService {
                 .build();
     }
 
-    public UsersResponse<UserResponse> getUsers(String keyword,String sort, Pageable pageable, String attribute){
-        Sort.Order order = new Sort.Order(Sort.Direction.ASC, attribute);
+    public UsersResponse<UserResponse> getUsers(SearchRequest request) {
+        Sort.Order order = new Sort.Order(Sort.Direction.ASC, request.getAttribute());//
 
-        if ("desc".equalsIgnoreCase(sort)) {
-            order = new Sort.Order(Sort.Direction.DESC, attribute);
+        if ("desc".equalsIgnoreCase(request.getSort())) {
+            order = new Sort.Order(Sort.Direction.DESC, request.getAttribute());
         }
-
+        Pageable pageable = PageRequest.of(request.getPage(),request.getSize());
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(order));
-        Page<User> userPage = (keyword == null || keyword.isBlank()) ? userRepository.findAll(sortedPageable):userRepository.findByKeyWord(keyword.trim(),sortedPageable );
-        List<UserResponse> userResponseDTOList =  userPage.getContent().stream().map(user -> UserResponse.builder()
+        Page<User> userPage = (request.getKeyword() == null || request.getKeyword().isBlank()) ? userRepository
+                .findAll(sortedPageable) : userRepository
+                .findByKeyWord(request.getKeyword().trim(), sortedPageable);
+        List<UserResponse> userResponseDTOList = userPage.getContent().stream().map(user -> UserResponse.builder()
                 .userName(user.getUsername())
                 .email(user.getEmail())
                 .address(user.getAddress())
                 .dateOfBirth(user.getDateOfBirth())
                 .build()).toList();
-        return new UsersResponse(userResponseDTOList,userPage.getTotalPages());
+        return new UsersResponse<>(userResponseDTOList, userPage.getTotalPages());
     }
 }
 

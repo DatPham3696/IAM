@@ -52,14 +52,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-//    private boolean isKeycloakToken(String token){
-//        String issuer = jwtTokenUtils.get
-//    }
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String uri = request.getRequestURI();
         return uri.contains("api/users/login") ||
                 uri.contains("api/users/register") ||
-//                uri.contains("/logoutAccount")  ||
                 uri.contains("api/users/confirm-register-email") ||
                 uri.contains("api/users/confirm-login-email") ||
                 uri.contains("api/users/uploads") ||

@@ -22,10 +22,10 @@ public class RolePermissionService {
     public RolePermission addRolePermission(String code, String resourceCode, String scope) {
         Role role = roleRepository.findByCode(code).orElseThrow(() -> new RuntimeException("Not found role"));
         Permission permission = permissionRepository.findByResourceCodeAndScope(resourceCode, scope)
-                .orElseThrow(() -> new RuntimeException("Not found permission"));
+                                .orElseThrow(() -> new RuntimeException("Not found permission"));
         boolean check = rolePermissionRepository.findAllByRoleId(role.getId()).stream()
-                .anyMatch(rolePermission -> rolePermission.getPermissionId().equals(permission.getId()));
-        if(check){
+                        .anyMatch(rolePermission -> rolePermission.getPermissionId().equals(permission.getId()));
+        if (check) {
             throw new RuntimeException("Role permission existed");
         }
         return rolePermissionRepository.save(RolePermission.builder()

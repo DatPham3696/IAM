@@ -27,13 +27,13 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByRefreshToken(token);
     }
 
-    public RefreshToken createRefreshToken(String userId, String accessTokenId) {
+    public RefreshToken createRefreshToken(String userId, String accessTokenId, Date accessTokenExp) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUserId(userId);
         refreshToken.setExpiryDate(new Date(System.currentTimeMillis() + refreshTokenDuration));
         refreshToken.setRefreshToken(jwtTokenUtils.generaRefreshToken(userRepository.findById(userId).get()));
         refreshToken.setAccessTokenId(accessTokenId);
-
+        refreshToken.setAccessTokenExp(accessTokenExp);
         return refreshTokenRepository.save(refreshToken);
     }
 

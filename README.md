@@ -22,7 +22,6 @@ It uses **Java 21** as the runtime environment and requires Keycloak to be set u
 ### 1 Clone the Repository  
 ```bash
 git clone <repository-url>
-cd <repository-folder>
 ```
 ### 2 Configure Keycloak
 1. Download **Keycloak** from the [official website](https://www.keycloak.org/downloads).

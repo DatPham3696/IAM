@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class UserRepositoryImpl implements UserRepositoryCustom{
+public class UserRepositoryImpl implements IUserRepositoryCustom{
     @PersistenceContext
     private EntityManager entityManager;
 

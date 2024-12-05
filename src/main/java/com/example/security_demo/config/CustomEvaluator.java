@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -57,14 +58,15 @@ public class CustomEvaluator implements PermissionEvaluator {
     }
 
     private boolean hasAdminRole(User user) {
-        List<Long> roleIds = roleUserRepository.findAllByUserId(user.getId()).stream()
-                .map(RoleUser::getRoleId)
-                .toList();
-
-        Long roleAdminId = roleRepository.findByCode(EnumRole.ADMIN.name())
-                .map(Role::getId)
-                .orElseThrow(() -> new RuntimeException("Admin role not found"));
-        return roleIds.contains(roleAdminId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null){
+            boolean isAdminInAuthentication = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals(EnumRole.ADMIN.name()));
+            if(isAdminInAuthentication){
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasPermissionForResource(User user, Object targetDomainObject, Object permission) {

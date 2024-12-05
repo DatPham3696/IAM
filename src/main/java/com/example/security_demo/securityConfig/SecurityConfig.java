@@ -71,8 +71,8 @@ public class SecurityConfig {
                     .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
         } else {
             httpSecurity
-                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                    .httpBasic(withDefaults());
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//                    .httpBasic(withDefaults());
         }
         return httpSecurity.build();
     }

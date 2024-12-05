@@ -1,7 +1,6 @@
 package com.example.security_demo.repository;
 
 import com.example.security_demo.entity.User;
-import jakarta.persistence.SequenceGenerators;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-@Repository
+@Repository // imple userRepocus
 public interface IUserRepository extends JpaRepository<User, String> {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     Optional<User> findByUserName(String userName);

@@ -15,8 +15,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,7 +40,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequestDTO userDTO, HttpServletRequest request) throws Exception {
+    public String login(@Valid @RequestBody LoginRequestDTO userDTO, HttpServletRequest request) throws Exception {
         try {
             return defaultUserService.login(userDTO);
         } catch (Exception e) {
@@ -63,7 +61,7 @@ public class UserController {
 
     @PutMapping("update/{userId}")
     @PreAuthorize("hasPermission('USER','UPDATE')")
-    public ResponseEntity<?> updateUserById(@Valid @PathVariable("userId") String userId, @RequestBody UpdateInforRequestDTO updateInforRequestDTO) {
+    public ResponseEntity<?> updateUserById(@Valid @PathVariable("userId") String userId,@Valid @RequestBody UpdateInforRequestDTO updateInforRequestDTO) {
         try {
             return ResponseEntity.ok(defaultUserService.updateUserInfo(userId, updateInforRequestDTO));
         } catch (UserNotFoundException ex) {
@@ -75,7 +73,7 @@ public class UserController {
 
     @PutMapping("change-password/{userId}")
     @PreAuthorize("hasPermission('USER','UPDATE')")
-    public ResponseEntity<?> changeUserPassword(@PathVariable("userId") String userId, @RequestBody ChangePasswordRequest changePasswordRequest) {
+    public ResponseEntity<?> changeUserPassword(@PathVariable("userId") String userId,@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
         try {
             defaultUserService.changePassword(userId, changePasswordRequest);
             return ResponseEntity.ok("Change password successful");
@@ -92,7 +90,7 @@ public class UserController {
 
     @PostMapping("/reset-password-token")
     @PreAuthorize("hasPermission('USER','UPDATE')")
-    public ResponseEntity<?> resetPasswordByToken(@RequestBody RetakePasswordByTokenDTO retakePasswordByTokenDTO) {
+    public ResponseEntity<?> resetPasswordByToken(@Valid @RequestBody RetakePasswordByTokenDTO retakePasswordByTokenDTO) {
         return ResponseEntity.ok(defaultUserService.resetPasswordByToken(retakePasswordByTokenDTO));
     }
 
@@ -153,6 +151,11 @@ public class UserController {
     @GetMapping("/users-infor")
     @PreAuthorize("hasPermission('ADMIN','ADMIN')")
     public ResponseEntity<UsersResponse<UserResponse>> getUsers(@ModelAttribute SearchRequest request){
+        return ResponseEntity.ok().body(defaultUserService.getUsers(request));
+    }
+    @GetMapping("/users-search")
+    @PreAuthorize("hasPermission('ADMIN','ADMIN')")
+    public ResponseEntity<UsersResponse<UserResponse>> getSearch(@ModelAttribute UserSearchRequest request){
         return ResponseEntity.ok().body(defaultUserService.getUsers(request));
     }
 

@@ -1,9 +1,11 @@
 package com.example.security_demo.securityConfig;
 
+import com.example.security_demo.Logging.LoggingFilter;
 import com.example.security_demo.config.CustomEvaluator;
 import com.example.security_demo.config.JwtAuthenticationFilter;
 //import com.example.security_demo.service.UserInforDetailService;
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +41,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
     @Autowired(required = false)
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private LoggingFilter loggingFilter;
     String[] PUBLIC_ENDPOINT = {"api/users/login/**", "api/users/register/**", "api/users/resetPasswordToken/**",
                                 "api/users/logout-account/**", "api/users/confirm-register-email/**", "api/users/confirm-login-email", "api/users/uploads/**",
                                 "api/users/refresh-token/**", "api/users/logout/**"};

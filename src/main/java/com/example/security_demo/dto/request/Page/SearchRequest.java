@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SearchRequest {
     private String keyword;
-    private int page = 0;
+    private int page = 1;
     private int size = 10;
-    private String sort = "asc";
+    private String sort ;
     private String attribute;
 }

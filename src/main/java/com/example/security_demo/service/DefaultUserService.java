@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.angus.mail.imap.protocol.SearchSequence;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,6 +52,7 @@ public class DefaultUserService {
     private final HttpServletRequest request;
     private final RefreshTokenService refreshTokenService;
     private final UserKeycloakService userKeycloakService;
+    private final UserRepositoryImpl userRepositoryImpl;
 
     public UserResponse register(RegisterDTO registerDTO) throws UserExistedException {
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
@@ -352,11 +352,11 @@ public class DefaultUserService {
         if ("desc".equalsIgnoreCase(request.getSort())) {
             order = new Sort.Order(Sort.Direction.DESC, request.getAttribute());
         }
-        Pageable pageable = PageRequest.of(request.getPage(),request.getSize());
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(order));
         Page<User> userPage = (request.getKeyword() == null || request.getKeyword().isBlank()) ? userRepository
-                .findAll(sortedPageable) : userRepository
-                .findByKeyWord(request.getKeyword().trim(), sortedPageable);
+                .findAll(sortedPageable) :
+                userRepository.findByKeyWord(request.getKeyword().trim(), sortedPageable);
         List<UserResponse> userResponseDTOList = userPage.getContent().stream().map(user -> UserResponse.builder()
                 .userName(user.getUsername())
                 .email(user.getEmail())
@@ -364,6 +364,17 @@ public class DefaultUserService {
                 .dateOfBirth(user.getDateOfBirth())
                 .build()).toList();
         return new UsersResponse<>(userResponseDTOList, userPage.getTotalPages());
+    }
+
+    public UsersResponse<UserResponse> getUsers(UserSearchRequest request) {
+        List<User> users = userRepositoryImpl.searchUser(request);
+        List<UserResponse> userResponseList = users.stream().map(user -> UserResponse.builder()
+                .userName(user.getUsername())
+                .email(user.getEmail())
+                .address(user.getAddress())
+                .dateOfBirth(user.getDateOfBirth())
+                .build()).toList();
+        return new UsersResponse<>(userResponseList, request.getPage());
     }
 }
 

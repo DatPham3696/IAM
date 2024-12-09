@@ -32,4 +32,6 @@ public class Role extends Auditable{
     private String description;
     @Column(name = "name")
     private String name;
+    @Column(name = "is_admin")
+    private boolean isAdmin;
 }

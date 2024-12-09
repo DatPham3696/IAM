@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -51,7 +52,7 @@ public class CustomEvaluator implements PermissionEvaluator {
 
     private User getUserById(String searchKeyword) {
         if (keycloakEnabled) {
-            return userRepository.findByKeyclUserId(searchKeyword);
+            return userRepository.findByEmail(searchKeyword).orElseThrow(() -> new RuntimeException("User not found"));
         } else {
             return userRepository.findByEmail(searchKeyword).orElseThrow(() -> new RuntimeException("User not found"));
         }
@@ -59,12 +60,10 @@ public class CustomEvaluator implements PermissionEvaluator {
 
     private boolean hasAdminRole(User user) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null){
-            boolean isAdminInAuthentication = authentication.getAuthorities().stream()
+        if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.User) {
+            org.springframework.security.core.userdetails.User userDetails = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+            return userDetails.getAuthorities().stream()
                     .anyMatch(authority -> authority.getAuthority().equals(EnumRole.ADMIN.name()));
-            if(isAdminInAuthentication){
-                return true;
-            }
         }
         return false;
     }

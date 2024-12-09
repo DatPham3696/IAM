@@ -51,6 +51,8 @@ public class User extends Auditable implements UserDetails{
     private Boolean deleted;
     @Column(name = "enabled")
     private boolean enabled;
+//    @Column(name = "is_root")
+//    private boolean isRoot;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

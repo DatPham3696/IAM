@@ -53,7 +53,7 @@ spring:
           issuer-uri: http://localhost:8080/realms/IAM
           jwk-set-uri: http://localhost:8080/realms/IAM/protocol/openid-connect/certs
 idp:
-  enabled: false
+  enabled: true
   url: http://localhost:8080
   client-id: aim_app
   client-secret: gCmqsGzo2kEwgUCJtPhYIlTNDX1KFau1

@@ -4,6 +4,7 @@ import com.example.security_demo.Logging.LoggingFilter;
 import com.example.security_demo.config.CustomEvaluator;
 import com.example.security_demo.config.JwtAuthenticationFilter;
 //import com.example.security_demo.service.UserInforDetailService;
+import com.example.security_demo.config.JwtOauth2Filter;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -41,6 +43,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
     @Autowired(required = false)
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private JwtOauth2Filter jwtOauth2Filter;
     @Autowired
     private LoggingFilter loggingFilter;
     String[] PUBLIC_ENDPOINT = {"api/users/login/**", "api/users/register/**", "api/users/resetPasswordToken/**",
@@ -66,8 +70,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         if (keycloakEnabled) {
             httpSecurity
-                    .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())
+                    .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults())
                             .authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                    .addFilterAfter(jwtOauth2Filter, BearerTokenAuthenticationFilter.class)
                     .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
         } else {
             httpSecurity

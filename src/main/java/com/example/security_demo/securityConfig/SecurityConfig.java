@@ -43,13 +43,14 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
     @Autowired(required = false)
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-    @Autowired
+    @Autowired(required = false)
+//    @Autowired
     private JwtOauth2Filter jwtOauth2Filter;
     @Autowired
     private LoggingFilter loggingFilter;
     String[] PUBLIC_ENDPOINT = {"api/users/login/**", "api/users/register/**", "api/users/resetPasswordToken/**",
                                 "api/users/logout-account/**", "api/users/confirm-register-email/**", "api/users/confirm-login-email", "api/users/uploads/**",
-                                "api/users/refresh-token/**", "api/users/logout/**"};
+                                "api/users/refresh-token/**", "api/users/logout/**", "api/file/download/**"};
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final String[] SWAGGER_ENDPOINT = {"/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui/index.html"};
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")

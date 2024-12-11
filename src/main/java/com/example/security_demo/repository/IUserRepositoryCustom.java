@@ -8,5 +8,4 @@ import java.util.List;
 public interface IUserRepositoryCustom {
     List<User> searchUser(UserSearchRequest request);
     Long countUser(UserSearchRequest request);
-
 }

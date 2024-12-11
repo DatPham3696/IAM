@@ -58,7 +58,7 @@ public class DefaultUserService {
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
             throw new UserExistedException("Email already exists");
         }
-        Role role = roleRepository.findByCode("ADMIN").orElseThrow(() -> new RuntimeException("role not found"));
+        Role role = roleRepository.findByCode("HR").orElseThrow(() -> new RuntimeException("role not found"));
         if (role == null) {
             throw new RuntimeException("Role not found: USER");
         }

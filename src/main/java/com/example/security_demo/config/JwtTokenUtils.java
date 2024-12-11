@@ -36,7 +36,7 @@ public class JwtTokenUtils {
         RoleUser roleUser = roleUserRepository.findByUserId(user.getId());
         String roleName = roleRepository.findById(roleUser.getRoleId()).get().getCode();
         long currentTimeMillis = System.currentTimeMillis();
-        Date expirationDate = new Date(currentTimeMillis + 300000);
+        Date expirationDate = new Date(currentTimeMillis + 30 * 60 * 1000);
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", user.getUsername());
         claims.put("sub", user.getEmail());

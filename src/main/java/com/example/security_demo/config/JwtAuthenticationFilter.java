@@ -38,7 +38,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "v3/api-docs",
 //            "/swagger-ui/",
             "swagger-ui/index.html",
-            "api/file/download"
+            "api/file/download",
+            "api/export-data/export"
     );
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

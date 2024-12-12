@@ -50,7 +50,7 @@ public class SecurityConfig {
     private LoggingFilter loggingFilter;
     String[] PUBLIC_ENDPOINT = {"api/users/login/**", "api/users/register/**", "api/users/resetPasswordToken/**",
                                 "api/users/logout-account/**", "api/users/confirm-register-email/**", "api/users/confirm-login-email", "api/users/uploads/**",
-                                "api/users/refresh-token/**", "api/users/logout/**", "api/file/download/**"};
+                                "api/users/refresh-token/**", "api/users/logout/**", "api/file/download/**","api/export-data/export/**"};
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final String[] SWAGGER_ENDPOINT = {"/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui/index.html"};
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")

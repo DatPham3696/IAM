@@ -1,4 +1,4 @@
-package com.example.security_demo.service;
+package com.example.security_demo.service.eiDataService;
 
 import com.example.security_demo.entity.UserProfile;
 import com.example.security_demo.repository.IUserProfileRepository;
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +27,12 @@ public class ImportDataService {
         Sheet sheet = workbook.getSheetAt(0);
         Iterator<Row> rows = sheet.iterator();
         rows.next();
+        StringBuilder errorReport = new StringBuilder();
+        int rowIndex = 1;
         while (rows.hasNext()) {
             Row row = rows.next();
+            rowIndex++;
+            try{
             String stt = getCellValue(row.getCell(0));
             String username = getCellValue(row.getCell(1));
             String fullName = getCellValue(row.getCell(2));
@@ -38,38 +42,71 @@ public class ImportDataService {
             String province = getCellValue(row.getCell(6));
             String experience = getCellValue(row.getCell(7));
             validation(username, fullName, birthDate, experience);
-            userProfileRepository.save(UserProfile.builder()
-                    .username(username)
-                    .fullName(fullName)
-                    .birthDate(birthDate)
-                    .street(street)
-                    .district(district)
-                    .province(province)
-                    .experience(experience)
-                    .build());
+                validation(username, fullName, birthDate, experience);
+                userProfileRepository.save(UserProfile.builder()
+                        .username(username)
+                        .fullName(fullName)
+                        .birthDate(birthDate)
+                        .street(street)
+                        .district(district)
+                        .province(province)
+                        .experience(experience)
+                        .build());
+            }catch (IllegalArgumentException e){
+                errorReport.append(String.format("Row %d: %s\n", rowIndex, e.getMessage()));
+            }
         }
-        return "import succesful";
+        workbook.close();
+        if(errorReport.length() > 0){
+            return "Import error: \n" + errorReport.toString();
+        }
+        return "Import successfull ";
     }
     private void validation(String username, String fullName, String birthDate, String experience){
-        if (username.isEmpty() || fullName.isEmpty() || isUsernameExists(username) || !isValidDate(birthDate) || !isNumeric(experience))
-        {
-            throw new IllegalArgumentException("argument invalid");
+       StringBuilder errors = new StringBuilder();
+       if(username.isEmpty()){
+           errors.append("Username is empty ");
+       }else if(isUsernameExists(username)){
+           errors.append("Username already exist ");
+       }
+
+       if(fullName.isEmpty()){
+           errors.append("Full name is empty ");
+       }
+
+       if(!isValidDate(birthDate)){
+           errors.append("Birth date is invalid,expected format: yyyy-MM-dd ");
+       }
+
+       if(!isNumeric(experience)){
+           errors.append("Experience must be a number ");
+       }
+
+        if (!errors.isEmpty()) {
+            throw new IllegalArgumentException(errors.toString().trim());
         }
     }
+
+
     private boolean isUsernameExists(String username) {
         return userProfileRepository.findByUsername(username).isPresent();
     }
-
     private boolean isValidDate(String date) {
-        Pattern pattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
-        Matcher matcher = pattern.matcher(date);
-        return matcher.matches();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        try {
+            LocalDate.parse(date, formatter);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
     }
+
 
     private boolean isNumeric(String str) {
         try {
-            Integer.parseInt(str);
-            return true;
+            double doubleValue = Double.parseDouble(str);
+            int intValue = (int) doubleValue;
+            return doubleValue == intValue;
         } catch (NumberFormatException e) {
             return false;
         }

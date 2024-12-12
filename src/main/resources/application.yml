@@ -1,11 +1,21 @@
+server:
+  port: 8090
 spring:
   application:
     name: security-demo
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
   datasource:
-    url: jdbc:postgresql://localhost:5432/UserTest
+    url: jdbc:postgresql://localhost:5432/TestUser
     username: postgres
     password: postdb
     driver-class-name: org.postgresql.Driver
+  output:
+    ansi:
+      enabled: always
   jpa:
     hibernate:
       ddl-auto: update
@@ -13,17 +23,53 @@ spring:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       format-sql: true
       show-sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: datp3696@gmail.com
+    password: stvkepuocrcyafom
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  redis:
+    host: localhost
+    port: 6379
   security:
+    authentication:
+      jwt:
+        jwt_refresh_expiration: 2592000000
+        key_store: keystore.jks
+        key_store_password: phamthanhdat
+        key_alias: viz
     user:
       name: admin
       password: password
-    jwt:
-      secret: yPTyD4NJtTyXxf9v+Y9bPerZs6XtiCyD+fNdlB/lRmdq4UrpOK6brnicDMZXbgiq
     oauth2:
-      client:
-        registration:
-          github:
-            client-id: Ov23liSMUAYlfBae7nWd
-            client-secret: 4027d992c26ec04f7beb46c932c085d845bfb60e
-
-
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/IAM
+          jwk-set-uri: http://localhost:8080/realms/IAM/protocol/openid-connect/certs
+idp:
+  enabled: false
+  url: http://localhost:8080
+  client-id: aim_app
+  client-secret: gCmqsGzo2kEwgUCJtPhYIlTNDX1KFau1
+  endpoints:
+    token: /realms/IAM/protocol/openid-connect/token
+    create-user: /admin/realms/IAM/users
+    logout: /realms/IAM/protocol/openid-connect/logout
+    enable-user: /admin/realms/IAM/users/{userId}
+    reset-password: /admin/realms/IAM/users/{userId}/reset-password
+    user-info: /realms/IAM/protocol/openid-connect/userinfo
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    version: openapi_3_0
+logging:
+  file:
+    path: logs/
+    name: logs/application.log
